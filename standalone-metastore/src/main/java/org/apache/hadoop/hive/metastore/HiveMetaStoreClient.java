@@ -402,6 +402,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (hook != null) {
       hook.preAlterTable(new_tbl, envContext);
     }
+    LOG.warn("HMS Trace: alter_table_with_environment_context(" + prependCatalogToDbName(dbname, conf) + "," + tbl_name +
+            "," + new_tbl + "," + envContext.toString() + ")");
     client.alter_table_with_environment_context(prependCatalogToDbName(dbname, conf),
         tbl_name, new_tbl, envContext);
   }
@@ -409,6 +411,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void alter_table(String catName, String dbName, String tblName, Table newTable,
                          EnvironmentContext envContext) throws TException {
+    LOG.warn("HMS Trace: alter_table_with_environment_context(" + prependCatalogToDbName(catName, dbName, conf) + "," + tblName +
+            "," + newTable + "," + envContext.toString() + ")");
     client.alter_table_with_environment_context(prependCatalogToDbName(catName,
         dbName, conf), tblName, newTable, envContext);
   }
@@ -422,6 +426,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void renamePartition(String catName, String dbname, String tableName, List<String> part_vals,
                               Partition newPart) throws TException {
+    LOG.warn("HMS Trace: rename_partition(" + prependCatalogToDbName(catName, dbname, conf) + "," + tableName +
+            "," + part_vals + "," + newPart.toString() + ")");
     client.rename_partition(prependCatalogToDbName(catName, dbname, conf), tableName, part_vals, newPart);
 
   }
@@ -531,6 +537,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
             // Call set_ugi, only in unsecure mode.
             try {
               UserGroupInformation ugi = SecurityUtils.getUGI();
+              LOG.warn("HMS Trace: set_ugi(" + ugi.getUserName() + "," + Arrays.asList(ugi.getGroupNames()).toString() + ")");
               client.set_ugi(ugi.getUserName(), Arrays.asList(ugi.getGroupNames()));
             } catch (LoginException e) {
               LOG.warn("Failed to do login. set_ugi() is not successful, " +
@@ -588,6 +595,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     currentMetaVars = null;
     try {
       if (null != client) {
+        LOG.warn("HMS Trace: shutdown()");
         client.shutdown();
       }
     } catch (TException e) {
@@ -603,38 +611,45 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public void setMetaConf(String key, String value) throws TException {
+    LOG.warn("HMS Trace: setMetaConf("  + key + "," + value +")");
     client.setMetaConf(key, value);
   }
 
   @Override
   public String getMetaConf(String key) throws TException {
+    LOG.warn("HMS Trace: setMetaConf("  + key + ")");
     return client.getMetaConf(key);
   }
 
   @Override
   public void createCatalog(Catalog catalog) throws TException {
+    LOG.warn("HMS Trace: create_catalog("  + new CreateCatalogRequest(catalog) + ")");
     client.create_catalog(new CreateCatalogRequest(catalog));
   }
 
   @Override
   public void alterCatalog(String catalogName, Catalog newCatalog) throws TException {
+    LOG.warn("HMS Trace: alter_catalog("  + new AlterCatalogRequest(catalogName, newCatalog) + ")");
     client.alter_catalog(new AlterCatalogRequest(catalogName, newCatalog));
   }
 
   @Override
   public Catalog getCatalog(String catName) throws TException {
+    LOG.warn("HMS Trace: get_catalog("  + new GetCatalogRequest(catName) + ")");
     GetCatalogResponse rsp = client.get_catalog(new GetCatalogRequest(catName));
     return rsp == null ? null : filterHook.filterCatalog(rsp.getCatalog());
   }
 
   @Override
   public List<String> getCatalogs() throws TException {
+    LOG.warn("HMS Trace: get_catalogs()");
     GetCatalogsResponse rsp = client.get_catalogs();
     return rsp == null ? null : filterHook.filterCatalogs(rsp.getNames());
   }
 
   @Override
   public void dropCatalog(String catName) throws TException {
+    LOG.warn("HMS Trace: drop_catalog("+ new DropCatalogRequest(catName) +")");
     client.drop_catalog(new DropCatalogRequest(catName));
   }
 
@@ -655,6 +670,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public Partition add_partition(Partition new_part, EnvironmentContext envContext)
       throws TException {
     if (!new_part.isSetCatName()) new_part.setCatName(getDefaultCatalog(conf));
+    LOG.warn("HMS Trace: add_partition_with_environment_context("+ new_part.toString() + "," + envContext.toString() +")");
     Partition p = client.add_partition_with_environment_context(new_part, envContext);
     return deepCopy(p);
   }
@@ -673,6 +689,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       final String defaultCat = getDefaultCatalog(conf);
       new_parts.forEach(p -> p.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_partitions(" + new_parts.toString() + ")");
     return client.add_partitions(new_parts);
   }
 
@@ -692,6 +709,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
         part.getDbName(), part.getTableName(), parts, ifNotExists);
     req.setCatName(part.isSetCatName() ? part.getCatName() : getDefaultCatalog(conf));
     req.setNeedResult(needResults);
+    LOG.warn("HMS Trace: add_partitions_req(" + req + ")");
     AddPartitionsResult result = client.add_partitions_req(req);
     return needResults ? filterHook.filterPartitions(result.getPartitions()) : null;
   }
@@ -701,6 +719,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (partitionSpec.getCatName() == null) {
       partitionSpec.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: add_partitions_pspec(" + partitionSpec.toPartitionSpec().toString() + ")");
     return client.add_partitions_pspec(partitionSpec.toPartitionSpec());
   }
 
@@ -719,6 +738,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public Partition appendPartition(String catName, String dbName, String tableName,
                                    String name) throws TException {
+    LOG.warn("HMS Trace: append_partition_by_name(" + prependCatalogToDbName(
+            catName, dbName, conf) + "," + tableName + "," + name + ")");
     Partition p = client.append_partition_by_name(prependCatalogToDbName(
         catName, dbName, conf), tableName, name);
     return deepCopy(p);
@@ -727,6 +748,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public Partition appendPartition(String catName, String dbName, String tableName,
                                    List<String> partVals) throws TException {
+    LOG.warn("HMS Trace: append_partition(" + prependCatalogToDbName(
+            catName, dbName, conf) + "," + tableName + "," + partVals.toString() + ")");
     Partition p = client.append_partition(prependCatalogToDbName(
         catName, dbName, conf), tableName, partVals);
     return deepCopy(p);
@@ -735,6 +758,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Deprecated
   public Partition appendPartition(String dbName, String tableName, List<String> partVals,
                                    EnvironmentContext ec) throws TException {
+    LOG.warn("HMS Trace: append_partition_with_environment_context(" + prependCatalogToDbName(
+            dbName, conf) + "," + tableName + "," + partVals.toString() + "," + ec.toString() +")");
     return client.append_partition_with_environment_context(prependCatalogToDbName(dbName, conf),
         tableName, partVals, ec).deepCopy();
   }
@@ -758,6 +783,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public Partition exchange_partition(Map<String, String> partitionSpecs, String sourceCat,
                                       String sourceDb, String sourceTable, String destCat,
                                       String destDb, String destTableName) throws TException {
+    LOG.warn("HMS Trace: exchange_partition(" + partitionSpecs.toString() + "," +
+            prependCatalogToDbName(sourceCat, sourceDb, conf) + "," + sourceTable + "," +
+            prependCatalogToDbName(destCat, destDb, conf) + "," + destTableName + ")");
     return client.exchange_partition(partitionSpecs, prependCatalogToDbName(sourceCat, sourceDb, conf),
         sourceTable, prependCatalogToDbName(destCat, destDb, conf), destTableName);
   }
@@ -781,6 +809,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public List<Partition> exchange_partitions(Map<String, String> partitionSpecs, String sourceCat,
                                              String sourceDb, String sourceTable, String destCat,
                                              String destDb, String destTableName) throws TException {
+    LOG.warn("HMS Trace: exchange_partitions(" + partitionSpecs.toString() + "," +
+            prependCatalogToDbName(sourceCat, sourceDb, conf) + "," + sourceTable + "," +
+            prependCatalogToDbName(destCat, destDb, conf) + "," + destTableName + ")");
     return client.exchange_partitions(partitionSpecs, prependCatalogToDbName(sourceCat, sourceDb, conf),
         sourceTable, prependCatalogToDbName(destCat, destDb, conf), destTableName);
   }
@@ -788,6 +819,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void validatePartitionNameCharacters(List<String> partVals)
       throws TException, MetaException {
+    LOG.warn("HMS Trace: partition_name_has_valid_characters(" + partVals.toString() + ",true)");
     client.partition_name_has_valid_characters(partVals, true);
   }
 
@@ -806,6 +838,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!db.isSetCatalogName()) {
       db.setCatalogName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: create_database(" + db.toString() + ")");
     client.create_database(db);
   }
 
@@ -889,6 +922,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     }
     boolean success = false;
     try {
+      LOG.warn("HMS Trace: create_table_with_constraints("+ tbl.toString() + "," + primaryKeys.toString() +
+              "," + foreignKeys.toString() + "," + uniqueConstraints.toString() + "," + notNullConstraints +
+              "," + defaultConstraints + "," + checkConstraints +")");
       // Subclasses can override this step (for example, for temporary tables)
       client.create_table_with_constraints(tbl, primaryKeys, foreignKeys,
           uniqueConstraints, notNullConstraints, defaultConstraints, checkConstraints);
@@ -914,6 +950,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws TException {
     DropConstraintRequest rqst = new DropConstraintRequest(dbName, tableName, constraintName);
     rqst.setCatName(catName);
+    LOG.warn("HMS Trace: drop_constraint("+ rqst +")");
     client.drop_constraint(rqst);
   }
 
@@ -923,6 +960,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       primaryKeyCols.forEach(pk -> pk.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_primary_key("+ new AddPrimaryKeyRequest(primaryKeyCols) +")");
     client.add_primary_key(new AddPrimaryKeyRequest(primaryKeyCols));
   }
 
@@ -932,6 +970,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       foreignKeyCols.forEach(fk -> fk.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_foreign_key("+ new AddForeignKeyRequest(foreignKeyCols) +")");
     client.add_foreign_key(new AddForeignKeyRequest(foreignKeyCols));
   }
 
@@ -942,6 +981,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       uniqueConstraintCols.forEach(uc -> uc.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_unique_constraint("+ new AddUniqueConstraintRequest(uniqueConstraintCols) +")");
     client.add_unique_constraint(new AddUniqueConstraintRequest(uniqueConstraintCols));
   }
 
@@ -952,6 +992,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       notNullConstraintCols.forEach(nn -> nn.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_not_null_constraint("+ new AddNotNullConstraintRequest(notNullConstraintCols) +")");
     client.add_not_null_constraint(new AddNotNullConstraintRequest(notNullConstraintCols));
   }
 
@@ -962,6 +1003,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       defaultConstraints.forEach(def -> def.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_default_constraint("+ new AddDefaultConstraintRequest(defaultConstraints) +")");
     client.add_default_constraint(new AddDefaultConstraintRequest(defaultConstraints));
   }
 
@@ -972,6 +1014,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       String defaultCat = getDefaultCatalog(conf);
       checkConstraints.forEach(cc -> cc.setCatName(defaultCat));
     }
+    LOG.warn("HMS Trace: add_check_constraint("+ new AddCheckConstraintRequest(checkConstraints) +")");
     client.add_check_constraint(new AddCheckConstraintRequest(checkConstraints));
   }
 
@@ -986,6 +1029,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
    */
   public boolean createType(Type type) throws AlreadyExistsException,
       InvalidObjectException, MetaException, TException {
+    LOG.warn("HMS Trace: create_type("+ type.toString() +")");
     return client.create_type(type);
   }
 
@@ -1048,6 +1092,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
         }
       }
     }
+    LOG.warn("HMS Trace: drop_database(" + prependCatalogToDbName(
+            catalogName, dbName, conf) + "," +  deleteData + "," + cascade + ")");
     client.drop_database(prependCatalogToDbName(catalogName, dbName, conf), deleteData, cascade);
   }
 
@@ -1060,6 +1106,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public boolean dropPartition(String catName, String db_name, String tbl_name, String name,
                                boolean deleteData) throws TException {
+    LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + prependCatalogToDbName(
+            catName, db_name, conf) + "," + tbl_name + "," + name + "," + deleteData + "," + "null)");
     return client.drop_partition_by_name_with_environment_context(prependCatalogToDbName(
         catName, db_name, conf), tbl_name, name, deleteData, null);
   }
@@ -1077,6 +1125,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Deprecated
   public boolean dropPartition(String db_name, String tbl_name, List<String> part_vals,
       EnvironmentContext env_context) throws TException {
+    LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + prependCatalogToDbName(
+            db_name, conf) + "," + tbl_name + "," + part_vals.toString() + ",true," + env_context.toString() + ")");
     return client.drop_partition_with_environment_context(prependCatalogToDbName(db_name, conf),
         tbl_name, part_vals, true, env_context);
   }
@@ -1084,6 +1134,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Deprecated
   public boolean dropPartition(String dbName, String tableName, String partName, boolean dropData,
                                EnvironmentContext ec) throws TException {
+    LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + prependCatalogToDbName(
+            dbName, conf) + "," + tableName + "," + partName + "," + dropData + "," + ec.toString() + ")");
     return client.drop_partition_by_name_with_environment_context(prependCatalogToDbName(dbName, conf),
         tableName, partName, dropData, ec);
   }
@@ -1091,6 +1143,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Deprecated
   public boolean dropPartition(String dbName, String tableName, List<String> partVals)
       throws TException {
+    LOG.warn("HMS Trace: drop_partition(" + prependCatalogToDbName(
+            dbName, conf) + "," + tableName + "," + partVals.toString() + ",true" + ")");
     return client.drop_partition(prependCatalogToDbName(dbName, conf), tableName, partVals, true);
   }
 
@@ -1128,6 +1182,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
         }
       }
     }
+    LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + prependCatalogToDbName(
+            catName, db_name, conf) + "," + tbl_name + "," + part_vals.toString() + "," + options.deleteData + "," + "null)");
     return client.drop_partition_with_environment_context(prependCatalogToDbName(
         catName, db_name, conf), tbl_name, part_vals, options.deleteData,
         options.purgeData ? getEnvironmentContextWithIfPurgeSet() : null);
@@ -1187,6 +1243,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       LOG.info("Dropped partitions will be purged!");
       req.setEnvironmentContext(getEnvironmentContextWithIfPurgeSet());
     }
+    LOG.warn("HMS Trace: drop_partitions_req(" + req.toString() + ")");
     return client.drop_partitions_req(req).getPartitions();
   }
 
@@ -1289,6 +1346,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void truncateTable(String catName, String dbName, String tableName, List<String> partNames)
       throws TException {
+    LOG.warn("HMS Trace: truncate_table(" + prependCatalogToDbName(catName, dbName, conf) + "," +
+            tableName + "," +  partNames.toString() + ")");
     client.truncate_table(prependCatalogToDbName(catName, dbName, conf), tableName, partNames);
   }
 
@@ -1301,6 +1360,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
    */
   @Override
   public CmRecycleResponse recycleDirToCmPath(CmRecycleRequest request) throws MetaException, TException {
+    LOG.warn("HMS Trace: cm_recycle(" + request.toString() + ")");
     return client.cm_recycle(request);
   }
 
@@ -1312,6 +1372,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
    * @see org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface#drop_type(java.lang.String)
    */
   public boolean dropType(String type) throws NoSuchObjectException, MetaException, TException {
+    LOG.warn("HMS Trace: drop_type(" + type + ")");
     return client.drop_type(type);
   }
 
@@ -1325,6 +1386,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public Map<String, Type> getTypeAll(String name) throws MetaException,
       TException {
     Map<String, Type> result = null;
+    LOG.warn("HMS Trace: get_type_all(" + name + ")");
     Map<String, Type> fromClient = client.get_type_all(name);
     if (fromClient != null) {
       result = new LinkedHashMap<>();
@@ -1342,6 +1404,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public List<String> getDatabases(String catName, String databasePattern) throws TException {
+    LOG.warn("HMS Trace: get_databases(" + prependCatalogToDbName(
+            catName, databasePattern, conf) + ")");
     return filterHook.filterDatabases(client.get_databases(prependCatalogToDbName(
         catName, databasePattern, conf)));
   }
@@ -1353,6 +1417,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public List<String> getAllDatabases(String catName) throws TException {
+    LOG.warn("HMS Trace: get_databases(" + prependCatalogToDbName(
+            catName, null, conf) + ")");
     return filterHook.filterDatabases(client.get_databases(prependCatalogToDbName(catName, null, conf)));
   }
 
@@ -1365,6 +1431,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<Partition> listPartitions(String catName, String db_name, String tbl_name,
                                         int max_parts) throws TException {
+    LOG.warn("HMS Trace: get_partitions(" + prependCatalogToDbName(catName, db_name, conf) + "," + tbl_name
+            + "," + shrinkMaxtoShort(max_parts) + ")");
     List<Partition> parts = client.get_partitions(prependCatalogToDbName(catName, db_name, conf),
         tbl_name, shrinkMaxtoShort(max_parts));
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1378,6 +1446,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public PartitionSpecProxy listPartitionSpecs(String catName, String dbName, String tableName,
                                                int maxParts) throws TException {
+    LOG.warn("HMS Trace: get_partitions_pspec(" + prependCatalogToDbName(catName, dbName, conf) + "," + tableName
+            + "," + maxParts + ")");
     return PartitionSpecProxy.Factory.get(filterHook.filterPartitionSpecs(
         client.get_partitions_pspec(prependCatalogToDbName(catName, dbName, conf), tableName, maxParts)));
   }
@@ -1391,6 +1461,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<Partition> listPartitions(String catName, String db_name, String tbl_name,
                                         List<String> part_vals, int max_parts) throws TException {
+    LOG.warn("HMS Trace: get_partitions_ps(" + prependCatalogToDbName(catName, db_name, conf) + "," + tbl_name
+            + "," +  part_vals.toString() + "," + shrinkMaxtoShort(max_parts) + ")");
     List<Partition> parts = client.get_partitions_ps(prependCatalogToDbName(catName, db_name, conf),
         tbl_name, part_vals, shrinkMaxtoShort(max_parts));
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1408,6 +1480,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public List<Partition> listPartitionsWithAuthInfo(String catName, String dbName, String tableName,
                                                     int maxParts, String userName,
                                                     List<String> groupNames) throws TException {
+    LOG.warn("HMS Trace: get_partitions_with_auth(" + prependCatalogToDbName(catName, dbName, conf) + "," +
+            tableName + "," + shrinkMaxtoShort(maxParts) + "," + userName + "," +
+            groupNames.toString() + ")" );
     List<Partition> parts = client.get_partitions_with_auth(prependCatalogToDbName(catName,
         dbName, conf), tableName, shrinkMaxtoShort(maxParts), userName, groupNames);
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1427,6 +1502,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
                                                     List<String> partialPvals, int maxParts,
                                                     String userName, List<String> groupNames)
       throws TException {
+    LOG.warn("HMS Trace: get_partitions_ps_with_auth(" + prependCatalogToDbName(catName, dbName, conf) + "," +
+            tableName + "," + partialPvals.toString() + "," + shrinkMaxtoShort(maxParts) + "," + userName + "," +
+            groupNames.toString() + ")" );
     List<Partition> parts = client.get_partitions_ps_with_auth(prependCatalogToDbName(catName,
         dbName, conf), tableName, partialPvals, shrinkMaxtoShort(maxParts), userName, groupNames);
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1441,6 +1519,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<Partition> listPartitionsByFilter(String catName, String db_name, String tbl_name,
                                                 String filter, int max_parts) throws TException {
+    LOG.warn("HMS Trace: get_partitions_by_filter(" + prependCatalogToDbName(catName, db_name, conf) + "," +
+            tbl_name + "," + filter.toString() + "," + shrinkMaxtoShort(max_parts) + ")" );
     List<Partition> parts =client.get_partitions_by_filter(prependCatalogToDbName(
         catName, db_name, conf), tbl_name, filter, shrinkMaxtoShort(max_parts));
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1457,6 +1537,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public PartitionSpecProxy listPartitionSpecsByFilter(String catName, String db_name,
                                                        String tbl_name, String filter,
                                                        int max_parts) throws TException {
+    LOG.warn("HMS Trace: get_part_specs_by_filter(" + prependCatalogToDbName(catName, db_name, conf) + "," +
+            tbl_name + "," + filter.toString() + "," + max_parts + ")" );
     return PartitionSpecProxy.Factory.get(filterHook.filterPartitionSpecs(
         client.get_part_specs_by_filter(prependCatalogToDbName(catName, db_name, conf), tbl_name, filter,
             max_parts)));
@@ -1485,6 +1567,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     }
     PartitionsByExprResult r;
     try {
+      LOG.warn("HMS Trace: get_partitions_by_expr(" + req.toString() + ")" );
       r = client.get_partitions_by_expr(req);
     } catch (TApplicationException te) {
       // TODO: backward compat for Hive <= 0.12. Can be removed later.
@@ -1508,6 +1591,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public Database getDatabase(String catalogName, String databaseName) throws TException {
+    LOG.warn("HMS Trace: get_database(" + prependCatalogToDbName(catalogName, databaseName, conf) + ")");
     Database d = client.get_database(prependCatalogToDbName(catalogName, databaseName, conf));
     return deepCopy(filterHook.filterDatabase(d));
   }
@@ -1521,6 +1605,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public Partition getPartition(String catName, String dbName, String tblName,
                                 List<String> partVals) throws TException {
+    LOG.warn("HMS Trace: get_partition(" + prependCatalogToDbName(catName, dbName, conf) + "," + tblName + ","
+            + partVals.toString() + ")");
     Partition p = client.get_partition(prependCatalogToDbName(catName, dbName, conf), tblName, partVals);
     return deepCopy(filterHook.filterPartition(p));
   }
@@ -1534,6 +1620,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<Partition> getPartitionsByNames(String catName, String db_name, String tbl_name,
                                               List<String> part_names) throws TException {
+    LOG.warn("HMS Trace: get_partition_with_auth(" + prependCatalogToDbName(catName, db_name, conf) + "," +
+            tbl_name + "," + part_names.toString() + ")");
     List<Partition> parts =
         client.get_partitions_by_names(prependCatalogToDbName(catName, db_name, conf), tbl_name, part_names);
     return deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1545,6 +1633,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!request.isSetCatName()) {
       request.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_partition_values(" + request + ")");
     return client.get_partition_values(request);
   }
 
@@ -1560,6 +1649,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public Partition getPartitionWithAuthInfo(String catName, String dbName, String tableName,
                                             List<String> pvals, String userName,
                                             List<String> groupNames) throws TException {
+    LOG.warn("HMS Trace: get_partition_with_auth(" + prependCatalogToDbName(catName, dbName, conf) + "," +
+            tableName + "," + pvals.toString() + "," + userName + "," + groupNames.toString() + ")");
     Partition p = client.get_partition_with_auth(prependCatalogToDbName(catName, dbName, conf), tableName,
         pvals, userName, groupNames);
     return deepCopy(filterHook.filterPartition(p));
@@ -1575,6 +1666,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     GetTableRequest req = new GetTableRequest(dbName, tableName);
     req.setCatName(catName);
     req.setCapabilities(version);
+    LOG.warn("HMS Trace: get_table_req(" + req.toString() + ")");
     Table t = client.get_table_req(req).getTable();
     return deepCopy(filterHook.filterTable(t));
   }
@@ -1592,6 +1684,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     req.setCatName(catName);
     req.setTblNames(tableNames);
     req.setCapabilities(version);
+    LOG.warn("HMS Trace: get_table_objects_by_name_req(" + req.toString() + ")");
     List<Table> tabs = client.get_table_objects_by_name_req(req).getTables();
     return deepCopyTables(filterHook.filterTables(tabs));
   }
@@ -1599,18 +1692,23 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public Materialization getMaterializationInvalidationInfo(CreationMetadata cm, String validTxnList)
       throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    LOG.warn("HMS Trace: get_materialization_invalidation_info(" + cm.toString() + "," + validTxnList + ")");
     return client.get_materialization_invalidation_info(cm, validTxnList);
   }
 
   @Override
   public void updateCreationMetadata(String dbName, String tableName, CreationMetadata cm)
       throws MetaException, InvalidOperationException, UnknownDBException, TException {
+    LOG.warn("HMS Trace: update_creation_metadata(" + getDefaultCatalog(conf) + "," + dbName
+            + "," + tableName + "," + cm.toString() + ")");
     client.update_creation_metadata(getDefaultCatalog(conf), dbName, tableName, cm);
   }
 
   @Override
   public void updateCreationMetadata(String catName, String dbName, String tableName,
                                      CreationMetadata cm) throws MetaException, TException {
+    LOG.warn("HMS Trace: update_creation_metadata(" + catName + "," + dbName
+            + "," + tableName + "," + cm.toString() + ")");
     client.update_creation_metadata(catName, dbName, tableName, cm);
 
   }
@@ -1625,6 +1723,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<String> listTableNamesByFilter(String catName, String dbName, String filter,
                                              int maxTables) throws TException {
+    LOG.warn("HMS Trace: get_table_names_by_filter(" + prependCatalogToDbName(catName, dbName, conf) + "," + filter
+            + "," + shrinkMaxtoShort(maxTables) + ")");
     return filterHook.filterTableNames(catName, dbName,
         client.get_table_names_by_filter(prependCatalogToDbName(catName, dbName, conf), filter,
             shrinkMaxtoShort(maxTables)));
@@ -1639,6 +1739,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
    * @see org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Iface#get_type(java.lang.String)
    */
   public Type getType(String name) throws NoSuchObjectException, MetaException, TException {
+    LOG.warn("HMS Trace: get_type(" + name + ")");
     return deepCopy(client.get_type(name));
   }
 
@@ -1655,6 +1756,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<String> getTables(String catName, String dbName, String tablePattern)
       throws TException {
+    LOG.warn("HMS Trace: get_tables(" + prependCatalogToDbName(catName, dbName, conf) +
+            "," + tablePattern + ")");
     return filterHook.filterTableNames(catName, dbName,
         client.get_tables(prependCatalogToDbName(catName, dbName, conf), tablePattern));
   }
@@ -1672,6 +1775,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<String> getTables(String catName, String dbName, String tablePattern,
                                 TableType tableType) throws TException {
+    LOG.warn("HMS Trace: get_tables_by_type(" + prependCatalogToDbName(catName, dbName, conf) +
+            "," + tablePattern + "," + tableType.toString() + ")");
     return filterHook.filterTableNames(catName, dbName,
         client.get_tables_by_type(prependCatalogToDbName(catName, dbName, conf), tablePattern,
             tableType.toString()));
@@ -1686,6 +1791,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public List<String> getMaterializedViewsForRewriting(String catName, String dbname)
       throws MetaException {
     try {
+      LOG.warn("HMS Trace: get_materialized_views_for_rewriting("+ prependCatalogToDbName(catName, dbname, conf) +")");
       return filterHook.filterTableNames(catName, dbname,
           client.get_materialized_views_for_rewriting(prependCatalogToDbName(catName, dbname, conf)));
     } catch (Exception e) {
@@ -1708,6 +1814,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<TableMeta> getTableMeta(String catName, String dbPatterns, String tablePatterns,
                                       List<String> tableTypes) throws TException {
+    LOG.warn("HMS Trace: get_table_meta("+ prependCatalogToDbName(catName, dbPatterns, conf) + "," + tablePatterns +
+            "," + tableTypes.toString() +")");
     return filterHook.filterTableMetas(client.get_table_meta(prependCatalogToDbName(
         catName, dbPatterns, conf), tablePatterns, tableTypes));
   }
@@ -1724,6 +1832,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public List<String> getAllTables(String catName, String dbName) throws TException {
+    LOG.warn("HMS Trace: get_all_tables("+ prependCatalogToDbName(catName, dbName, conf) + ")");
     return filterHook.filterTableNames(catName, dbName, client.get_all_tables(
         prependCatalogToDbName(catName, dbName, conf)));
   }
@@ -1739,6 +1848,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       GetTableRequest req = new GetTableRequest(dbName, tableName);
       req.setCatName(catName);
       req.setCapabilities(version);
+      LOG.warn("HMS Trace: get_table_req(" + req.toString() + ")");
       return filterHook.filterTable(client.get_table_req(req).getTable()) != null;
     } catch (NoSuchObjectException e) {
       return false;
@@ -1754,6 +1864,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<String> listPartitionNames(String catName, String dbName, String tableName,
                                          int maxParts) throws TException {
+    LOG.warn("HMS Trace: get_partition_names("+ prependCatalogToDbName(catName, dbName, conf) + "," +
+            tableName + "," + shrinkMaxtoShort(maxParts) + ")");
     return filterHook.filterPartitionNames(catName, dbName, tableName,
         client.get_partition_names(prependCatalogToDbName(catName, dbName, conf), tableName, shrinkMaxtoShort(maxParts)));
   }
@@ -1767,6 +1879,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<String> listPartitionNames(String catName, String db_name, String tbl_name,
                                          List<String> part_vals, int max_parts) throws TException {
+    LOG.warn("HMS Trace: get_partition_names_ps("+ prependCatalogToDbName(catName, db_name, conf) + "," +
+            tbl_name + "," + part_vals + "," + shrinkMaxtoShort(max_parts) + ")");
     return filterHook.filterPartitionNames(catName, db_name, tbl_name,
         client.get_partition_names_ps(prependCatalogToDbName(catName, db_name, conf), tbl_name,
             part_vals, shrinkMaxtoShort(max_parts)));
@@ -1781,6 +1895,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public int getNumPartitionsByFilter(String catName, String dbName, String tableName,
                                       String filter) throws TException {
+    LOG.warn("HMS Trace: get_num_partitions_by_filter("+ prependCatalogToDbName(catName, dbName, conf)
+            + "," + tableName + "," + filter + ")");
     return client.get_num_partitions_by_filter(prependCatalogToDbName(catName, dbName, conf), tableName,
         filter);
   }
@@ -1800,6 +1916,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void alter_partition(String catName, String dbName, String tblName, Partition newPart,
                               EnvironmentContext environmentContext) throws TException {
+    LOG.warn("HMS Trace: alter_partition_with_environment_context("+ prependCatalogToDbName(catName, dbName, conf) + ","
+            + tblName + "," + newPart.toString() + "," + environmentContext.toString() + ")");
     client.alter_partition_with_environment_context(prependCatalogToDbName(catName, dbName, conf), tblName,
         newPart, environmentContext);
   }
@@ -1820,6 +1938,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public void alter_partitions(String catName, String dbName, String tblName,
                                List<Partition> newParts,
                                EnvironmentContext environmentContext) throws TException {
+    LOG.warn("HMS Trace: alter_partitions_with_environment_context("+ prependCatalogToDbName(catName, dbName, conf) + ","
+            + tblName + "," + newParts.toString() + "," + environmentContext.toString() + ")");
     client.alter_partitions_with_environment_context(prependCatalogToDbName(catName, dbName, conf),
         tblName, newParts, environmentContext);
   }
@@ -1831,6 +1951,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public void alterDatabase(String catName, String dbName, Database newDb) throws TException {
+    LOG.warn("HMS Trace: alter_database("+ prependCatalogToDbName(catName, dbName, conf) + "," + newDb.toString() + ")");
     client.alter_database(prependCatalogToDbName(catName, dbName, conf), newDb);
   }
 
@@ -1842,6 +1963,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public List<FieldSchema> getFields(String catName, String db, String tableName)
       throws TException {
+    LOG.warn("HMS Trace: get_fields("+ prependCatalogToDbName(catName, db, conf) + "," + tableName + ")");
     List<FieldSchema> fields = client.get_fields(prependCatalogToDbName(catName, db, conf), tableName);
     return deepCopyFieldSchemas(fields);
   }
@@ -1851,6 +1973,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_primary_keys("+ req.toString() + ")");
     return client.get_primary_keys(req).getPrimaryKeys();
   }
 
@@ -1860,6 +1983,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_foreign_keys("+ req.toString() + ")");
     return client.get_foreign_keys(req).getForeignKeys();
   }
 
@@ -1869,6 +1993,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_unique_constraints("+ req.toString() + ")");
     return client.get_unique_constraints(req).getUniqueConstraints();
   }
 
@@ -1878,6 +2003,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_not_null_constraints("+ req.toString() + ")");
     return client.get_not_null_constraints(req).getNotNullConstraints();
   }
 
@@ -1887,6 +2013,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_default_constraints("+ req.toString() + ")");
     return client.get_default_constraints(req).getDefaultConstraints();
   }
 
@@ -1896,6 +2023,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!req.isSetCatName()) {
       req.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_check_constraints("+ req.toString() + ")");
     return client.get_check_constraints(req).getCheckConstraints();
   }
 
@@ -1905,6 +2033,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!statsObj.getStatsDesc().isSetCatName()) {
       statsObj.getStatsDesc().setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: update_table_column_statistics("+ statsObj.toString() + ")");
     return client.update_table_column_statistics(statsObj);
   }
 
@@ -1913,6 +2042,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!statsObj.getStatsDesc().isSetCatName()) {
       statsObj.getStatsDesc().setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: update_partition_column_statistics("+ statsObj.toString() + ")");
     return client.update_partition_column_statistics(statsObj);
   }
 
@@ -1924,12 +2054,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
         stats.getStatsDesc().setCatName(defaultCat);
       }
     }
+    LOG.warn("HMS Trace: set_aggr_stats_for("+ request.toString() + ")");
     return client.set_aggr_stats_for(request);
   }
 
   @Override
   public void flushCache() {
     try {
+      LOG.warn("HMS Trace: flushCache()");
       client.flushCache();
     } catch (TException e) {
       // Not much we can do about it honestly
@@ -1949,6 +2081,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
                                                             List<String> colNames) throws TException {
     TableStatsRequest rqst = new TableStatsRequest(dbName, tableName, colNames);
     rqst.setCatName(catName);
+    LOG.warn("HMS Trace: get_table_statistics_req(" + rqst.toString() + ")");
     return client.get_table_statistics_req(rqst).getTableStats();
   }
 
@@ -1966,6 +2099,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     PartitionsStatsRequest rqst = new PartitionsStatsRequest(dbName, tableName, colNames,
         partNames);
     rqst.setCatName(catName);
+    LOG.warn("HMS Trace: get_partitions_statistics_req(" + rqst.toString() + ")");
     return client.get_partitions_statistics_req(rqst).getPartStats();
   }
 
@@ -1980,6 +2114,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public boolean deletePartitionColumnStatistics(String catName, String dbName, String tableName,
                                                  String partName, String colName)
       throws TException {
+    LOG.warn("HMS Trace: delete_partition_column_statistics(" + prependCatalogToDbName(catName, dbName, conf)
+            + "," + tableName + "," + colName + ")");
     return client.delete_partition_column_statistics(prependCatalogToDbName(catName, dbName, conf),
         tableName, partName, colName);
   }
@@ -1993,6 +2129,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public boolean deleteTableColumnStatistics(String catName, String dbName, String tableName,
                                              String colName) throws TException {
+    LOG.warn("HMS Trace: delete_table_column_statistics(" + prependCatalogToDbName(catName, dbName, conf)
+            + "," + tableName + "," + colName + ")");
     return client.delete_table_column_statistics(prependCatalogToDbName(catName, dbName, conf),
         tableName, colName);
   }
@@ -2011,7 +2149,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       props.put("hive.added.jars.path", addedJars);
       envCxt = new EnvironmentContext(props);
     }
-
+    LOG.warn("HMS Trace: get_schema_with_environment_context(" + prependCatalogToDbName(catName, db, conf)
+            + "," + tableName + "," + envCxt.toString() + ")");
     List<FieldSchema> fields = client.get_schema_with_environment_context(prependCatalogToDbName(
         catName, db, conf), tableName, envCxt);
     return deepCopyFieldSchemas(fields);
@@ -2020,6 +2159,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public String getConfigValue(String name, String defaultValue)
       throws TException, ConfigValSecurityException {
+    LOG.warn("HMS Trace: get_config_value(" + name + "," + defaultValue + ")");
     return client.get_config_value(name, defaultValue);
   }
 
@@ -2031,6 +2171,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public Partition getPartition(String catName, String dbName, String tblName, String name)
       throws TException {
+    LOG.warn("HMS Trace: get_partition_by_name(" + prependCatalogToDbName(catName, dbName, conf) + "," +
+            tblName + "," + name + ")");
     Partition p = client.get_partition_by_name(prependCatalogToDbName(catName, dbName, conf), tblName,
         name);
     return deepCopy(filterHook.filterPartition(p));
@@ -2044,6 +2186,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public Partition appendPartitionByName(String dbName, String tableName, String partName,
       EnvironmentContext envContext) throws InvalidObjectException, AlreadyExistsException,
       MetaException, TException {
+    LOG.warn("HMS Trace: append_partition_by_name_with_environment_context(" + dbName  + "," +
+            tableName + "," + partName + "," + envContext.toString() +")");
     Partition p = client.append_partition_by_name_with_environment_context(dbName, tableName,
         partName, envContext);
     return deepCopy(p);
@@ -2057,6 +2201,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public boolean dropPartitionByName(String dbName, String tableName, String partName,
       boolean deleteData, EnvironmentContext envContext) throws NoSuchObjectException,
       MetaException, TException {
+    LOG.warn("HMS Trace: append_partition_by_name_with_environment_context(" + dbName  + "," +
+            tableName + "," + partName + "," + deleteData + "," +envContext.toString() +")");
     return client.drop_partition_by_name_with_environment_context(dbName, tableName, partName,
         deleteData, envContext);
   }
@@ -2070,11 +2216,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public List<String> partitionNameToVals(String name) throws MetaException, TException {
+    LOG.warn("HMS Trace: partition_name_to_vals(" + name +")");
     return client.partition_name_to_vals(name);
   }
 
   @Override
   public Map<String, String> partitionNameToSpec(String name) throws MetaException, TException{
+    LOG.warn("HMS Trace: partition_name_to_spec(" + name +")");
     return client.partition_name_to_spec(name);
   }
 
@@ -2190,6 +2338,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     req.setGrantor(grantor);
     req.setGrantorType(grantorType);
     req.setGrantOption(grantOption);
+    LOG.warn("HMS Trace: grant_revoke_role(" + req.toString() +")");
     GrantRevokeRoleResponse res = client.grant_revoke_role(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokeResponse missing success field");
@@ -2200,34 +2349,40 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public boolean create_role(Role role)
       throws MetaException, TException {
+    LOG.warn("HMS Trace: create_role(" + role.toString() +")");
     return client.create_role(role);
   }
 
   @Override
   public boolean drop_role(String roleName) throws MetaException, TException {
+    LOG.warn("HMS Trace: drop_role(" + roleName +")");
     return client.drop_role(roleName);
   }
 
   @Override
   public List<Role> list_roles(String principalName,
       PrincipalType principalType) throws MetaException, TException {
+    LOG.warn("HMS Trace: list_roles(" + principalName + "," + principalType.toString() +")");
     return client.list_roles(principalName, principalType);
   }
 
   @Override
   public List<String> listRoleNames() throws MetaException, TException {
+    LOG.warn("HMS Trace: get_role_names()");
     return client.get_role_names();
   }
 
   @Override
   public GetPrincipalsInRoleResponse get_principals_in_role(GetPrincipalsInRoleRequest req)
       throws MetaException, TException {
+    LOG.warn("HMS Trace: get_principals_in_role(" + req.toString() +")");
     return client.get_principals_in_role(req);
   }
 
   @Override
   public GetRoleGrantsForPrincipalResponse get_role_grants_for_principal(
       GetRoleGrantsForPrincipalRequest getRolePrincReq) throws MetaException, TException {
+    LOG.warn("HMS Trace: get_role_grants_for_principal(" + getRolePrincReq.toString() +")");
     return client.get_role_grants_for_principal(getRolePrincReq);
   }
 
@@ -2243,6 +2398,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     GrantRevokePrivilegeRequest req = new GrantRevokePrivilegeRequest();
     req.setRequestType(GrantRevokeType.GRANT);
     req.setPrivileges(privileges);
+    LOG.warn("HMS Trace: grant_revoke_privileges(" + req.toString() +")");
     GrantRevokePrivilegeResponse res = client.grant_revoke_privileges(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokePrivilegeResponse missing success field");
@@ -2259,6 +2415,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     req.setPrincipalName(userName);
     req.setPrincipalType(principalType);
     req.setGrantOption(grantOption);
+    LOG.warn("HMS Trace: grant_revoke_role(" + req.toString() +")");
     GrantRevokeRoleResponse res = client.grant_revoke_role(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokeResponse missing success field");
@@ -2279,6 +2436,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     req.setRequestType(GrantRevokeType.REVOKE);
     req.setPrivileges(privileges);
     req.setRevokeGrantOption(grantOption);
+    LOG.warn("HMS Trace: grant_revoke_privileges(" + req.toString() +")");
     GrantRevokePrivilegeResponse res = client.grant_revoke_privileges(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokePrivilegeResponse missing success field");
@@ -2303,7 +2461,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     GrantRevokePrivilegeRequest grantReq = new GrantRevokePrivilegeRequest();
     grantReq.setRequestType(GrantRevokeType.GRANT);
     grantReq.setPrivileges(grantPrivileges);
-
+    LOG.warn("HMS Trace: refresh_privileges(" + objToRefresh.toString() + "," + authorizer.toString()
+            + "," + grantReq.toString() +")");
     GrantRevokePrivilegeResponse res = client.refresh_privileges(objToRefresh, authorizer, grantReq);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokePrivilegeResponse missing success field");
@@ -2318,6 +2477,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!hiveObject.isSetCatName()) {
       hiveObject.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_privilege_set(" + hiveObject.toString() + "," + userName
+            + "," + groupNames.toString() +")");
     return client.get_privilege_set(hiveObject, userName, groupNames);
   }
 
@@ -2328,6 +2489,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!hiveObject.isSetCatName()) {
       hiveObject.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: list_privileges(" + principalName + "," + principalType.toString()
+            + "," + hiveObject.toString() +")");
     return client.list_privileges(principalName, principalType, hiveObject);
   }
 
@@ -2346,6 +2509,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (localMetaStore) {
       return null;
     }
+    LOG.warn("HMS Trace: get_delegation_token(" + owner + "," + renewerKerberosPrincipalName +")");
     return client.get_delegation_token(owner, renewerKerberosPrincipalName);
   }
 
@@ -2354,6 +2518,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (localMetaStore) {
       return 0;
     }
+    LOG.warn("HMS Trace: renew_delegation_token(" + tokenStrForm +")");
     return client.renew_delegation_token(tokenStrForm);
 
   }
@@ -2363,64 +2528,76 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (localMetaStore) {
       return;
     }
+    LOG.warn("HMS Trace: cancel_delegation_token(" + tokenStrForm +")");
     client.cancel_delegation_token(tokenStrForm);
   }
 
   @Override
   public boolean addToken(String tokenIdentifier, String delegationToken) throws TException {
-     return client.add_token(tokenIdentifier, delegationToken);
+    LOG.warn("HMS Trace: add_token(" + tokenIdentifier + "," + delegationToken +")");
+    return client.add_token(tokenIdentifier, delegationToken);
   }
 
   @Override
   public boolean removeToken(String tokenIdentifier) throws TException {
+    LOG.warn("HMS Trace: remove_token(" + tokenIdentifier +")");
     return client.remove_token(tokenIdentifier);
   }
 
   @Override
   public String getToken(String tokenIdentifier) throws TException {
+    LOG.warn("HMS Trace: get_token(" + tokenIdentifier +")");
     return client.get_token(tokenIdentifier);
   }
 
   @Override
   public List<String> getAllTokenIdentifiers() throws TException {
+    LOG.warn("HMS Trace: get_all_token_identifiers()");
     return client.get_all_token_identifiers();
   }
 
   @Override
   public int addMasterKey(String key) throws MetaException, TException {
+    LOG.warn("HMS Trace: add_master_key(" + key +")");
     return client.add_master_key(key);
   }
 
   @Override
   public void updateMasterKey(Integer seqNo, String key)
       throws NoSuchObjectException, MetaException, TException {
+    LOG.warn("HMS Trace: update_master_key(" + seqNo + "," + key +")");
     client.update_master_key(seqNo, key);
   }
 
   @Override
   public boolean removeMasterKey(Integer keySeq) throws TException {
+    LOG.warn("HMS Trace: remove_master_key(" + keySeq +")");
     return client.remove_master_key(keySeq);
   }
 
   @Override
   public String[] getMasterKeys() throws TException {
+    LOG.warn("HMS Trace: get_master_keys()");
     List<String> keyList = client.get_master_keys();
     return keyList.toArray(new String[keyList.size()]);
   }
 
   @Override
   public ValidTxnList getValidTxns() throws TException {
+    LOG.warn("HMS Trace: get_open_txns_info()");
     return TxnUtils.createValidReadTxnList(client.get_open_txns(), 0);
   }
 
   @Override
   public ValidTxnList getValidTxns(long currentTxn) throws TException {
+    LOG.warn("HMS Trace: get_open_txns_info()");
     return TxnUtils.createValidReadTxnList(client.get_open_txns(), currentTxn);
   }
 
   @Override
   public ValidWriteIdList getValidWriteIds(String fullTableName) throws TException {
     GetValidWriteIdsRequest rqst = new GetValidWriteIdsRequest(Collections.singletonList(fullTableName), null);
+    LOG.warn("HMS Trace: get_valid_write_ids(" + rqst.toString() +")");
     GetValidWriteIdsResponse validWriteIds = client.get_valid_write_ids(rqst);
     return TxnUtils.createValidReaderWriteIdList(validWriteIds.getTblValidWriteIds().get(0));
   }
@@ -2429,6 +2606,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public List<TableValidWriteIds> getValidWriteIds(
       List<String> tablesList, String validTxnList) throws TException {
     GetValidWriteIdsRequest rqst = new GetValidWriteIdsRequest(tablesList, validTxnList);
+    LOG.warn("HMS Trace: get_valid_write_ids(" + rqst.toString() +")");
     return client.get_valid_write_ids(rqst).getTblValidWriteIds();
   }
 
@@ -2470,11 +2648,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     } else {
       assert srcTxnIds == null;
     }
+    LOG.warn("HMS Trace: open_txns(" + rqst.toString() +")");
     return client.open_txns(rqst);
   }
 
   @Override
   public void rollbackTxn(long txnid) throws NoSuchTxnException, TException {
+    LOG.warn("HMS Trace: abort_txn(" + new AbortTxnRequest(txnid) +")");
     client.abort_txn(new AbortTxnRequest(txnid));
   }
 
@@ -2482,12 +2662,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public void replRollbackTxn(long srcTxnId, String replPolicy) throws NoSuchTxnException, TException {
     AbortTxnRequest rqst = new AbortTxnRequest(srcTxnId);
     rqst.setReplPolicy(replPolicy);
+    LOG.warn("HMS Trace: abort_txn(" + rqst.toString() +")");
     client.abort_txn(rqst);
   }
 
   @Override
   public void commitTxn(long txnid)
           throws NoSuchTxnException, TxnAbortedException, TException {
+    LOG.warn("HMS Trace: commit_txn(" + new CommitTxnRequest(txnid) +")");
     client.commit_txn(new CommitTxnRequest(txnid));
   }
 
@@ -2496,16 +2678,19 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
           throws NoSuchTxnException, TxnAbortedException, TException {
     CommitTxnRequest rqst = new CommitTxnRequest(srcTxnId);
     rqst.setReplPolicy(replPolicy);
+    LOG.warn("HMS Trace: commit_txn(" + rqst.toString() +")");
     client.commit_txn(rqst);
   }
 
   @Override
   public GetOpenTxnsInfoResponse showTxns() throws TException {
+    LOG.warn("HMS Trace: get_open_txns_info()");
     return client.get_open_txns_info();
   }
 
   @Override
   public void abortTxns(List<Long> txnids) throws NoSuchTxnException, TException {
+    LOG.warn("HMS Trace: abort_txn(" + new AbortTxnsRequest(txnids) +")");
     client.abort_txns(new AbortTxnsRequest(txnids));
   }
 
@@ -2533,6 +2718,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (partNames != null) {
       rqst.setPartNames(partNames);
     }
+    LOG.warn("HMS Trace: repl_tbl_writeid_state(" + rqst.toString() +")");
     client.repl_tbl_writeid_state(rqst);
   }
 
@@ -2559,12 +2745,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   }
 
   private List<TxnToWriteId> allocateTableWriteIdsBatchIntr(AllocateTableWriteIdsRequest rqst) throws TException {
+    LOG.warn("HMS Trace: allocate_table_write_ids(" + rqst.toString() +")");
     return client.allocate_table_write_ids(rqst).getTxnToWriteIds();
   }
 
   @Override
   public LockResponse lock(LockRequest request)
       throws NoSuchTxnException, TxnAbortedException, TException {
+    LOG.warn("HMS Trace: lock(" + request.toString() +")");
     return client.lock(request);
   }
 
@@ -2572,23 +2760,27 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public LockResponse checkLock(long lockid)
       throws NoSuchTxnException, TxnAbortedException, NoSuchLockException,
       TException {
+    LOG.warn("HMS Trace: check_lock(" + new CheckLockRequest(lockid) +")");
     return client.check_lock(new CheckLockRequest(lockid));
   }
 
   @Override
   public void unlock(long lockid)
       throws NoSuchLockException, TxnOpenException, TException {
+    LOG.warn("HMS Trace: unlock(" + new UnlockRequest(lockid) +")");
     client.unlock(new UnlockRequest(lockid));
   }
 
   @Override
   @Deprecated
   public ShowLocksResponse showLocks() throws TException {
+    LOG.warn("HMS Trace: show_locks(" + new ShowLocksRequest() +")");
     return client.show_locks(new ShowLocksRequest());
   }
 
   @Override
   public ShowLocksResponse showLocks(ShowLocksRequest request) throws TException {
+    LOG.warn("HMS Trace: show_locks(" + request.toString() +")");
     return client.show_locks(request);
   }
 
@@ -2599,6 +2791,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     HeartbeatRequest hb = new HeartbeatRequest();
     hb.setLockid(lockid);
     hb.setTxnid(txnid);
+    LOG.warn("HMS Trace: heartbeat(" + hb.toString() +")");
     client.heartbeat(hb);
   }
 
@@ -2606,6 +2799,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public HeartbeatTxnRangeResponse heartbeatTxnRange(long min, long max)
     throws NoSuchTxnException, TxnAbortedException, TException {
     HeartbeatTxnRangeRequest rqst = new HeartbeatTxnRangeRequest(min, max);
+    LOG.warn("HMS Trace: heartbeat_txn_range(" + rqst.toString() +")");
     return client.heartbeat_txn_range(rqst);
   }
 
@@ -2624,6 +2818,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       cr.setPartitionname(partitionName);
     }
     cr.setType(type);
+    LOG.warn("HMS Trace: compact(" + cr.toString() +")");
     client.compact(cr);
   }
   @Deprecated
@@ -2648,10 +2843,12 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     }
     cr.setType(type);
     cr.setProperties(tblproperties);
+    LOG.warn("HMS Trace: compact2(" + cr.toString() +")");
     return client.compact2(cr);
   }
   @Override
   public ShowCompactResponse showCompactions() throws TException {
+    LOG.warn("HMS Trace: show_compact(" + new ShowCompactRequest() +")");
     return client.show_compact(new ShowCompactRequest());
   }
 
@@ -2659,6 +2856,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void addDynamicPartitions(long txnId, long writeId, String dbName, String tableName,
                                    List<String> partNames) throws TException {
+    LOG.warn("HMS Trace: add_dynamic_partitions(" + new AddDynamicPartitions(txnId, writeId, dbName, tableName, partNames) +")");
     client.add_dynamic_partitions(new AddDynamicPartitions(txnId, writeId, dbName, tableName, partNames));
   }
   @Override
@@ -2666,6 +2864,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
                                    List<String> partNames, DataOperationType operationType) throws TException {
     AddDynamicPartitions adp = new AddDynamicPartitions(txnId, writeId, dbName, tableName, partNames);
     adp.setOperationType(operationType);
+    LOG.warn("HMS Trace: add_dynamic_partitions(" + adp.toString() +")");
     client.add_dynamic_partitions(adp);
   }
 
@@ -2694,6 +2893,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
                                                        NotificationFilter filter) throws TException {
     NotificationEventRequest rqst = new NotificationEventRequest(lastEventId);
     rqst.setMaxEvents(maxEvents);
+    LOG.warn("HMS Trace: get_next_notification(" + rqst.toString() +")");
     NotificationEventResponse rsp = client.get_next_notification(rqst);
     LOG.debug("Got back " + rsp.getEventsSize() + " events");
     NotificationEventResponse filtered = new NotificationEventResponse();
@@ -2720,6 +2920,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @InterfaceAudience.LimitedPrivate({"HCatalog"})
   @Override
   public CurrentNotificationEventId getCurrentNotificationEventId() throws TException {
+    LOG.warn("HMS Trace: get_current_notificationEventId()");
     return client.get_current_notificationEventId();
   }
 
@@ -2730,6 +2931,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!rqst.isSetCatName()) {
       rqst.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: get_notification_events_count(" + rqst.toString() + ")");
     return client.get_notification_events_count(rqst);
   }
 
@@ -2739,6 +2941,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!rqst.isSetCatName()) {
       rqst.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: fire_listener_event(" + rqst.toString() + ")");
     return client.fire_listener_event(rqst);
   }
 
@@ -2787,6 +2990,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public void markPartitionForEvent(String catName, String db_name, String tbl_name,
                                     Map<String, String> partKVs,
                                     PartitionEventType eventType) throws TException {
+    LOG.warn("HMS Trace: markPartitionForEvent(" + prependCatalogToDbName(catName, db_name, conf) + "," +
+            tbl_name + "," + partKVs.toString() + "," + eventType.toString() + ")");
     client.markPartitionForEvent(prependCatalogToDbName(catName, db_name, conf), tbl_name, partKVs,
         eventType);
 
@@ -2802,6 +3007,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public boolean isPartitionMarkedForEvent(String catName, String db_name, String tbl_name,
                                            Map<String, String> partKVs,
                                            PartitionEventType eventType) throws TException {
+    LOG.warn("HMS Trace: isPartitionMarkedForEvent(" + prependCatalogToDbName(catName, db_name, conf) + "," +
     return client.isPartitionMarkedForEvent(prependCatalogToDbName(catName, db_name, conf), tbl_name,
         partKVs, eventType);
   }
@@ -2811,6 +3017,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!func.isSetCatName()) {
       func.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: create_function(" + func.toString() + ")");
     client.create_function(func);
   }
 
@@ -2823,6 +3030,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void alterFunction(String catName, String dbName, String funcName,
                             Function newFunction) throws TException {
+    LOG.warn("HMS Trace: alter_function(" + prependCatalogToDbName(catName, dbName, conf) + "," + funcName +
+            "," + newFunction.toString() + ")");
     client.alter_function(prependCatalogToDbName(catName, dbName, conf), funcName, newFunction);
   }
 
@@ -2833,6 +3042,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public void dropFunction(String catName, String dbName, String funcName) throws TException {
+    LOG.warn("HMS Trace: drop_function(" + prependCatalogToDbName(catName, dbName, conf) + "," + funcName + ")");
     client.drop_function(prependCatalogToDbName(catName, dbName, conf), funcName);
   }
 
@@ -2843,6 +3053,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public Function getFunction(String catName, String dbName, String funcName) throws TException {
+    LOG.warn("HMS Trace: get_function(" + prependCatalogToDbName(catName, dbName, conf) + "," + funcName + ")");
     return deepCopy(client.get_function(prependCatalogToDbName(catName, dbName, conf), funcName));
   }
 
@@ -2853,22 +3064,27 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public List<String> getFunctions(String catName, String dbName, String pattern) throws TException {
+    LOG.warn("HMS Trace: get_functions(" + prependCatalogToDbName(catName, dbName, conf) + "," + pattern + ")");
     return client.get_functions(prependCatalogToDbName(catName, dbName, conf), pattern);
   }
 
   @Override
   public GetAllFunctionsResponse getAllFunctions() throws TException {
+    LOG.warn("HMS Trace: get_all_functions()");
     return client.get_all_functions();
   }
 
   protected void create_table_with_environment_context(Table tbl, EnvironmentContext envContext)
       throws AlreadyExistsException, InvalidObjectException,
       MetaException, NoSuchObjectException, TException {
+    LOG.warn("HMS Trace: create_table_with_environment_context("+ tbl.toString() + "," + envContext.toString() +")");
     client.create_table_with_environment_context(tbl, envContext);
   }
 
   protected void drop_table_with_environment_context(String catName, String dbname, String name,
       boolean deleteData, EnvironmentContext envContext) throws TException {
+    LOG.warn("HMS Trace: drop_table_with_environment_context("+ prependCatalogToDbName(catName, dbname, conf)
+            + "," + name + "," + deleteData + "," + envContext.toString() +")");
     client.drop_table_with_environment_context(prependCatalogToDbName(catName, dbname, conf),
         name, deleteData, envContext);
   }
@@ -2888,6 +3104,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     }
     PartitionsStatsRequest req = new PartitionsStatsRequest(dbName, tblName, colNames, partNames);
     req.setCatName(catName);
+    LOG.warn("HMS Trace: get_aggr_stats_for(" + req.toString() + ")");
     return client.get_aggr_stats_for(req);
   }
 
@@ -2917,6 +3134,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   }
 
   private GetFileMetadataResult sendGetFileMetadataReq(List<Long> fileIds) throws TException {
+    LOG.warn("HMS Trace: get_file_metadata("+ new GetFileMetadataRequest(fileIds) +")");
     return client.get_file_metadata(new GetFileMetadataRequest(fileIds));
   }
 
@@ -2948,6 +3166,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       ByteBuffer sarg, List<Long> fileIds, boolean doGetFooters) throws TException {
     GetFileMetadataByExprRequest req = new GetFileMetadataByExprRequest(fileIds, sarg);
     req.setDoGetFooters(doGetFooters); // No need to get footers
+    LOG.warn("HMS Trace: get_file_metadata_by_expr("+ req.toString() +")");
     return client.get_file_metadata_by_expr(req);
   }
 
@@ -3007,6 +3226,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public void clearFileMetadata(List<Long> fileIds) throws TException {
     ClearFileMetadataRequest req = new ClearFileMetadataRequest();
     req.setFileIds(fileIds);
+    LOG.warn("HMS Trace: clear_file_metadata("+ req.toString() +")");
     client.clear_file_metadata(req);
   }
 
@@ -3015,6 +3235,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     PutFileMetadataRequest req = new PutFileMetadataRequest();
     req.setFileIds(fileIds);
     req.setMetadata(metadata);
+    LOG.warn("HMS Trace: put_file_metadata("+ req.toString() +")");
     client.put_file_metadata(req);
   }
 
@@ -3034,12 +3255,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     } else {
       req.setIsAllParts(allParts);
     }
+    LOG.warn("HMS Trace: cache_file_metadata("+ req.toString() +")");
     CacheFileMetadataResult result = client.cache_file_metadata(req);
     return result.isIsSupported();
   }
 
   @Override
   public String getMetastoreDbUuid() throws TException {
+    LOG.warn("HMS Trace: get_metastore_db_uuid()");
     return client.get_metastore_db_uuid();
   }
 
@@ -3049,6 +3272,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     WMCreateResourcePlanRequest request = new WMCreateResourcePlanRequest();
     request.setResourcePlan(resourcePlan);
     request.setCopyFrom(copyFromName);
+    LOG.warn("HMS Trace: create_resource_plan("+ request.toString() +")");
     client.create_resource_plan(request);
   }
 
@@ -3057,6 +3281,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, MetaException, TException {
     WMGetResourcePlanRequest request = new WMGetResourcePlanRequest();
     request.setResourcePlanName(resourcePlanName);
+    LOG.warn("HMS Trace: create_resource_plan("+ request.toString() +")");
     return client.get_resource_plan(request).getResourcePlan();
   }
 
@@ -3064,6 +3289,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   public List<WMResourcePlan> getAllResourcePlans()
       throws NoSuchObjectException, MetaException, TException {
     WMGetAllResourcePlanRequest request = new WMGetAllResourcePlanRequest();
+    LOG.warn("HMS Trace: get_resource_plan("+ request.toString() +")");
     return client.get_all_resource_plans(request).getResourcePlans();
   }
 
@@ -3072,6 +3298,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, MetaException, TException {
     WMDropResourcePlanRequest request = new WMDropResourcePlanRequest();
     request.setResourcePlanName(resourcePlanName);
+    LOG.warn("HMS Trace: drop_resource_plan("+ request.toString() +")");
     client.drop_resource_plan(request);
   }
 
@@ -3085,12 +3312,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     request.setIsEnableAndActivate(canActivateDisabled);
     request.setIsForceDeactivate(isForceDeactivate);
     request.setIsReplace(isReplace);
+    LOG.warn("HMS Trace: alter_resource_plan("+ request.toString() +")");
     WMAlterResourcePlanResponse resp = client.alter_resource_plan(request);
     return resp.isSetFullResourcePlan() ? resp.getFullResourcePlan() : null;
   }
 
   @Override
   public WMFullResourcePlan getActiveResourcePlan() throws MetaException, TException {
+    LOG.warn("HMS Trace: get_active_resource_plan("+ request.toString() +")");
     return client.get_active_resource_plan(new WMGetActiveResourcePlanRequest()).getResourcePlan();
   }
 
@@ -3099,6 +3328,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, InvalidObjectException, MetaException, TException {
     WMValidateResourcePlanRequest request = new WMValidateResourcePlanRequest();
     request.setResourcePlanName(resourcePlanName);
+    LOG.warn("HMS Trace: validate_resource_plan("+ request.toString() +")");
     return client.validate_resource_plan(request);
   }
 
@@ -3107,6 +3337,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws InvalidObjectException, MetaException, TException {
     WMCreateTriggerRequest request = new WMCreateTriggerRequest();
     request.setTrigger(trigger);
+    LOG.warn("HMS Trace: create_wm_trigger("+ request.toString() +")");
     client.create_wm_trigger(request);
   }
 
@@ -3115,6 +3346,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, InvalidObjectException, MetaException, TException {
     WMAlterTriggerRequest request = new WMAlterTriggerRequest();
     request.setTrigger(trigger);
+    LOG.warn("HMS Trace: alter_wm_trigger("+ request.toString() +")");
     client.alter_wm_trigger(request);
   }
 
@@ -3124,6 +3356,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     WMDropTriggerRequest request = new WMDropTriggerRequest();
     request.setResourcePlanName(resourcePlanName);
     request.setTriggerName(triggerName);
+    LOG.warn("HMS Trace: drop_wm_trigger("+ request.toString() +")");
     client.drop_wm_trigger(request);
   }
 
@@ -3132,6 +3365,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, MetaException, TException {
     WMGetTriggersForResourePlanRequest request = new WMGetTriggersForResourePlanRequest();
     request.setResourcePlanName(resourcePlan);
+    LOG.warn("HMS Trace: get_triggers_for_resourceplan("+ request.toString() +")");
     return client.get_triggers_for_resourceplan(request).getTriggers();
   }
 
@@ -3140,6 +3374,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, InvalidObjectException, MetaException, TException {
     WMCreatePoolRequest request = new WMCreatePoolRequest();
     request.setPool(pool);
+    LOG.warn("HMS Trace: create_wm_pool("+ request.toString() +")");
     client.create_wm_pool(request);
   }
 
@@ -3149,6 +3384,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     WMAlterPoolRequest request = new WMAlterPoolRequest();
     request.setPool(pool);
     request.setPoolPath(poolPath);
+    LOG.warn("HMS Trace: alter_wm_pool("+ request.toString() +")");
     client.alter_wm_pool(request);
   }
 
@@ -3158,6 +3394,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     WMDropPoolRequest request = new WMDropPoolRequest();
     request.setResourcePlanName(resourcePlanName);
     request.setPoolPath(poolPath);
+    LOG.warn("HMS Trace: drop_wm_pool("+ request.toString() +")");
     client.drop_wm_pool(request);
   }
 
@@ -3167,6 +3404,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     WMCreateOrUpdateMappingRequest request = new WMCreateOrUpdateMappingRequest();
     request.setMapping(mapping);
     request.setUpdate(isUpdate);
+    LOG.warn("HMS Trace: create_or_update_wm_mapping("+ request.toString() +")");
     client.create_or_update_wm_mapping(request);
   }
 
@@ -3175,6 +3413,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
       throws NoSuchObjectException, MetaException, TException {
     WMDropMappingRequest request = new WMDropMappingRequest();
     request.setMapping(mapping);
+    LOG.warn("HMS Trace: drop_wm_mapping("+ request.toString() +")");
     client.drop_wm_mapping(request);
   }
 
@@ -3187,6 +3426,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     request.setTriggerName(triggerName);
     request.setPoolPath(poolPath);
     request.setDrop(shouldDrop);
+    LOG.warn("HMS Trace: create_or_drop_wm_trigger_to_pool_mapping("+ request.toString() +")");
     client.create_or_drop_wm_trigger_to_pool_mapping(request);
   }
 
@@ -3195,21 +3435,25 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!schema.isSetCatName()) {
       schema.setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: create_ischema("+ schema.toString() +")");
     client.create_ischema(schema);
   }
 
   @Override
   public void alterISchema(String catName, String dbName, String schemaName, ISchema newSchema) throws TException {
+    LOG.warn("HMS Trace: alter_ischema("+ new AlterISchemaRequest(new ISchemaName(catName, dbName, schemaName), newSchema) +")");
     client.alter_ischema(new AlterISchemaRequest(new ISchemaName(catName, dbName, schemaName), newSchema));
   }
 
   @Override
   public ISchema getISchema(String catName, String dbName, String name) throws TException {
+    LOG.warn("HMS Trace: get_ischema("+ new ISchemaName(catName, dbName, name) +")");
     return client.get_ischema(new ISchemaName(catName, dbName, name));
   }
 
   @Override
   public void dropISchema(String catName, String dbName, String name) throws TException {
+    LOG.warn("HMS Trace: drop_ischema("+ new ISchemaName(catName, dbName, name) +")");
     client.drop_ischema(new ISchemaName(catName, dbName, name));
   }
 
@@ -3218,37 +3462,45 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     if (!schemaVersion.getSchema().isSetCatName()) {
       schemaVersion.getSchema().setCatName(getDefaultCatalog(conf));
     }
+    LOG.warn("HMS Trace: add_schema_version("+ schemaVersion +")");
     client.add_schema_version(schemaVersion);
   }
 
   @Override
   public SchemaVersion getSchemaVersion(String catName, String dbName, String schemaName, int version) throws TException {
+    LOG.warn("HMS Trace: get_schema_version("+ new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version) +")");
     return client.get_schema_version(new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version));
   }
 
   @Override
   public SchemaVersion getSchemaLatestVersion(String catName, String dbName, String schemaName) throws TException {
+    LOG.warn("HMS Trace: get_schema_latest_version("+ new ISchemaName(catName, dbName, schemaName) + ")");
     return client.get_schema_latest_version(new ISchemaName(catName, dbName, schemaName));
   }
 
   @Override
   public List<SchemaVersion> getSchemaAllVersions(String catName, String dbName, String schemaName) throws TException {
+    LOG.warn("HMS Trace: get_schema_all_versions("+ new ISchemaName(catName, dbName, schemaName) + ")");
     return client.get_schema_all_versions(new ISchemaName(catName, dbName, schemaName));
   }
 
   @Override
   public void dropSchemaVersion(String catName, String dbName, String schemaName, int version) throws TException {
+    LOG.warn("HMS Trace: drop_schema_version("+ new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version) + ")");
     client.drop_schema_version(new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version));
   }
 
   @Override
   public FindSchemasByColsResp getSchemaByCols(FindSchemasByColsRqst rqst) throws TException {
+    LOG.warn("HMS Trace: get_schemas_by_cols("+ rqst.toString() + ")");
     return client.get_schemas_by_cols(rqst);
   }
 
   @Override
   public void mapSchemaVersionToSerde(String catName, String dbName, String schemaName, int version, String serdeName)
       throws TException {
+    LOG.warn("HMS Trace: map_schema_version_to_serde("+ new MapSchemaVersionToSerdeRequest(
+            new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version), serdeName) + ")");
     client.map_schema_version_to_serde(new MapSchemaVersionToSerdeRequest(
         new SchemaVersionDescriptor(new ISchemaName(catName, dbName, schemaName), version), serdeName));
   }
@@ -3256,17 +3508,21 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Override
   public void setSchemaVersionState(String catName, String dbName, String schemaName, int version, SchemaVersionState state)
       throws TException {
-    client.set_schema_version_state(new SetSchemaVersionStateRequest(new SchemaVersionDescriptor(
+        LOG.warn("HMS Trace: set_schema_version_state(" + new SetSchemaVersionStateRequest(new SchemaVersionDescriptor(
+            new ISchemaName(catName, dbName, schemaName), version), state)  +")");
+            client.set_schema_version_state(new SetSchemaVersionStateRequest(new SchemaVersionDescriptor(
         new ISchemaName(catName, dbName, schemaName), version), state));
   }
 
   @Override
   public void addSerDe(SerDeInfo serDeInfo) throws TException {
+    LOG.warn("HMS Trace: add_serde(" + serDeInfo.toString()  +")");
     client.add_serde(serDeInfo);
   }
 
   @Override
   public SerDeInfo getSerDe(String serDeName) throws TException {
+    LOG.warn("HMS Trace: get_serde(" + new GetSerdeRequest(serDeName)  +")");
     return client.get_serde(new GetSerdeRequest(serDeName));
   }
 
@@ -3282,16 +3538,19 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
 
   @Override
   public LockResponse lockMaterializationRebuild(String dbName, String tableName, long txnId) throws TException {
+    LOG.warn("HMS Trace: get_lock_materialization_rebuild(" + dbName + "," + tableName + "," + txnId +")");
     return client.get_lock_materialization_rebuild(dbName, tableName, txnId);
   }
 
   @Override
   public boolean heartbeatLockMaterializationRebuild(String dbName, String tableName, long txnId) throws TException {
+    LOG.warn("HMS Trace: heartbeat_lock_materialization_rebuild(" + dbName + "," + tableName + "," + txnId +")");
     return client.heartbeat_lock_materialization_rebuild(dbName, tableName, txnId);
   }
 
   @Override
   public void addRuntimeStat(RuntimeStat stat) throws TException {
+    LOG.warn("HMS Trace: add_runtime_stats(" + stat.toString() +")");
     client.add_runtime_stats(stat);
   }
 
@@ -3300,6 +3559,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
     GetRuntimeStatsRequest req = new GetRuntimeStatsRequest();
     req.setMaxWeight(maxWeight);
     req.setMaxCreateTime(maxCreateTime);
+    LOG.warn("HMS Trace: get_runtime_stats(" + req.toString() +")");
     return client.get_runtime_stats(req);
   }
 }
