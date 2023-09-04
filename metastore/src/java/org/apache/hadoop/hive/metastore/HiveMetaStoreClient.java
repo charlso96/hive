@@ -1808,7 +1808,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   /** {@inheritDoc} */
-  @OverridecolName
+  @Override
   public List<ColumnStatisticsObj> getTableColumnStatistics(String dbName, String tableName,
       List<String> colNames) throws NoSuchObjectException, MetaException, TException,
       InvalidInputException, InvalidObjectException {
@@ -2596,7 +2596,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   protected void create_table_with_environment_context(Table tbl, EnvironmentContext envContext)
       throws AlreadyExistsException, InvalidObjectException,
       MetaException, NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: create_table_with_environment_context("+ tbl.toString() + "," + envContext.toString() +")");
+    LOG.warn("HMS Trace: create_table_with_environment_context("+ String.valueOf(tbl) + "," + String.valueOf(envContext) +")");
     client.create_table_with_environment_context(tbl, envContext);
   }
 
