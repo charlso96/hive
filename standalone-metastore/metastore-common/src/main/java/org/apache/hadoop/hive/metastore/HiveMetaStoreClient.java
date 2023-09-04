@@ -5340,7 +5340,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient, AutoCloseable {
   @Deprecated
   @Override
   public OptionalCompactionInfoStruct findNextCompact(String workerId) throws TException {
-    LOG.warn("HMS Trace: find_next_compact(" + find_next_compact +")");
+    LOG.warn("HMS Trace: find_next_compact(" + workerId +")");
     return client.find_next_compact(workerId);
   }
 
