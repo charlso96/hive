@@ -372,7 +372,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void alter_table_with_environmentContext(String dbname, String tbl_name, Table new_tbl,
       EnvironmentContext envContext) throws InvalidOperationException, MetaException, TException {
     LOG.warn("HMS Trace: alter_table_with_environment_context(" + dbname + "," + tbl_name +
-            "," + new_tbl + "," + envContext.toString() + ")");
+            "," + new_tbl + "," + envContext + ")");
     client.alter_table_with_environment_context(dbname, tbl_name, new_tbl, envContext);
   }
 
@@ -391,7 +391,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void renamePartition(final String dbname, final String name, final List<String> part_vals, final Partition newPart)
       throws InvalidOperationException, MetaException, TException {
     LOG.warn("HMS Trace: rename_partition(" + dbname + "," + name +
-            "," + part_vals + "," + newPart.toString() + ")");
+            "," + part_vals + "," + newPart + ")");
     client.rename_partition(dbname, name, part_vals, newPart);
   }
 
@@ -509,7 +509,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
             // Call set_ugi, only in unsecure mode.
             try {
               UserGroupInformation ugi = Utils.getUGI();
-              LOG.warn("HMS Trace: set_ugi(" + ugi.getUserName() + "," + Arrays.asList(ugi.getGroupNames()).toString() + ")");
+              LOG.warn("HMS Trace: set_ugi(" + ugi.getUserName() + "," + Arrays.asList(ugi.getGroupNames()) + ")");
               client.set_ugi(ugi.getUserName(), Arrays.asList(ugi.getGroupNames()));
             } catch (LoginException e) {
               LOG.warn("Failed to do login. set_ugi() is not successful, " +
@@ -612,7 +612,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public Partition add_partition(Partition new_part, EnvironmentContext envContext)
       throws InvalidObjectException, AlreadyExistsException, MetaException,
       TException {
-    LOG.warn("HMS Trace: add_partition_with_environment_context("+ new_part.toString() + "," + envContext.toString() +")");
+    LOG.warn("HMS Trace: add_partition_with_environment_context("+ new_part + "," + envContext +")");
     Partition p = client.add_partition_with_environment_context(new_part, envContext);
     return fastpath ? p : deepCopy(p);
   }
@@ -629,7 +629,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public int add_partitions(List<Partition> new_parts)
       throws InvalidObjectException, AlreadyExistsException, MetaException,
       TException {
-    LOG.warn("HMS Trace: add_partitions(" + new_parts.toString() + ")");
+    LOG.warn("HMS Trace: add_partitions(" + new_parts + ")");
     return client.add_partitions(new_parts);
   }
 
@@ -651,7 +651,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
 
   @Override
   public int add_partitions_pspec(PartitionSpecProxy partitionSpec) throws TException {
-    LOG.warn("HMS Trace: add_partitions_pspec(" + partitionSpec.toPartitionSpec().toString() + ")");
+    LOG.warn("HMS Trace: add_partitions_pspec(" + partitionSpec.toPartitionSpec() + ")");
     return client.add_partitions_pspec(partitionSpec.toPartitionSpec());
   }
 
@@ -678,7 +678,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       EnvironmentContext envContext) throws InvalidObjectException, AlreadyExistsException,
       MetaException, TException {
     LOG.warn("HMS Trace: append_partition_with_environment_context(" + db_name + ","
-            + table_name + "," + part_vals.toString() + "," + envContext.toString() +")");
+            + table_name + "," + part_vals + "," + envContext +")");
     Partition p = client.append_partition_with_environment_context(db_name, table_name,
         part_vals, envContext);
     return fastpath ? p : deepCopy(p);
@@ -694,7 +694,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       EnvironmentContext envContext) throws InvalidObjectException, AlreadyExistsException,
       MetaException, TException {
     LOG.warn("HMS Trace: append_partition_by_name_with_environment_context(" + dbName + ","
-            + tableName + "," + partName.toString() + "," + envContext.toString() +")");
+            + tableName + "," + partName + "," + envContext +")");
     Partition p = client.append_partition_by_name_with_environment_context(dbName, tableName,
         partName, envContext);
     return fastpath ? p : deepCopy(p);
@@ -712,7 +712,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       String sourceDb, String sourceTable, String destDb,
       String destinationTableName) throws MetaException,
       NoSuchObjectException, InvalidObjectException, TException {
-    LOG.warn("HMS Trace: exchange_partition(" + partitionSpecs.toString() + "," +
+    LOG.warn("HMS Trace: exchange_partition(" + partitionSpecs + "," +
             sourceDb + "," + sourceTable + "," + destDb + "," + destinationTableName + ")");
     return client.exchange_partition(partitionSpecs, sourceDb, sourceTable,
         destDb, destinationTableName);
@@ -730,7 +730,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       String sourceDb, String sourceTable, String destDb,
       String destinationTableName) throws MetaException,
       NoSuchObjectException, InvalidObjectException, TException {
-    LOG.warn("HMS Trace: exchange_partitions(" + partitionSpecs.toString() + "," +
+    LOG.warn("HMS Trace: exchange_partitions(" + partitionSpecs + "," +
             sourceDb + "," + sourceTable + "," +
             destDb + "," + destinationTableName + ")");
     return client.exchange_partitions(partitionSpecs, sourceDb, sourceTable,
@@ -740,7 +740,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public void validatePartitionNameCharacters(List<String> partVals)
       throws TException, MetaException {
-    LOG.warn("HMS Trace: partition_name_has_valid_characters(" + partVals.toString() + ",true)");
+    LOG.warn("HMS Trace: partition_name_has_valid_characters(" + partVals + ",true)");
     client.partition_name_has_valid_characters(partVals, true);
   }
 
@@ -756,7 +756,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public void createDatabase(Database db)
       throws AlreadyExistsException, InvalidObjectException, MetaException, TException {
-    LOG.warn("HMS Trace: create_database(" + db.toString() + ")");
+    LOG.warn("HMS Trace: create_database(" + db + ")");
     client.create_database(db);
   }
 
@@ -811,8 +811,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     boolean success = false;
     try {
       // Subclasses can override this step (for example, for temporary tables)
-      LOG.warn("HMS Trace: create_table_with_constraints("+ tbl.toString() + "," + primaryKeys.toString() +
-              "," + foreignKeys.toString() + ")");
+      LOG.warn("HMS Trace: create_table_with_constraints("+ tbl + "," + primaryKeys +
+              "," + foreignKeys + ")");
       client.create_table_with_constraints(tbl, primaryKeys, foreignKeys);
       if (hook != null) {
         hook.commitCreateTable(tbl);
@@ -857,7 +857,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
    */
   public boolean createType(Type type) throws AlreadyExistsException,
       InvalidObjectException, MetaException, TException {
-    LOG.warn("HMS Trace: create_type("+ type.toString() +")");
+    LOG.warn("HMS Trace: create_type("+ type +")");
     return client.create_type(type);
   }
 
@@ -954,7 +954,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public boolean dropPartition(String dbName, String tableName, String partName, boolean deleteData,
       EnvironmentContext envContext) throws NoSuchObjectException, MetaException, TException {
     LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + dbName + "," + tableName + "," + partName
-            + "," + deleteData + "," + envContext.toString() + ")");
+            + "," + deleteData + "," + envContext + ")");
     return client.drop_partition_by_name_with_environment_context(dbName, tableName, partName,
         deleteData, envContext);
   }
@@ -990,7 +990,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       boolean deleteData, EnvironmentContext envContext) throws NoSuchObjectException,
       MetaException, TException {
     LOG.warn("HMS Trace: drop_partition_with_environment_context(" + db_name + "," + tbl_name + ","
-            + part_vals.toString() + "," + deleteData + "," + envContext.toString() + ")");
+            + part_vals + "," + deleteData + "," + envContext + ")");
     return client.drop_partition_with_environment_context(db_name, tbl_name, part_vals, deleteData,
         envContext);
   }
@@ -1016,7 +1016,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       LOG.info("Dropped partitions will be purged!");
       req.setEnvironmentContext(getEnvironmentContextWithIfPurgeSet());
     }
-    LOG.warn("HMS Trace: drop_partitions_req(" + req.toString() + ")");
+    LOG.warn("HMS Trace: drop_partitions_req(" + req + ")");
     return client.drop_partitions_req(req).getPartitions();
   }
 
@@ -1241,7 +1241,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       List<String> part_vals, short max_parts)
       throws NoSuchObjectException, MetaException, TException {
     LOG.warn("HMS Trace: get_partitions_ps(" + db_name + "," + tbl_name
-            + "," +  part_vals.toString() + "," + max_parts + ")");
+            + "," +  part_vals + "," + max_parts + ")");
     List<Partition> parts = client.get_partitions_ps(db_name, tbl_name, part_vals, max_parts);
     return fastpath ? parts : deepCopyPartitions(filterHook.filterPartitions(parts));
   }
@@ -1264,8 +1264,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       MetaException, TException {
 
     LOG.warn("HMS Trace: get_partitions_ps_with_auth(" + db_name + "," +
-            tbl_name + "," + part_vals.toString() + "," + max_parts + "," + user_name + "," +
-            group_names.toString() + ")" );
+            tbl_name + "," + part_vals + "," + max_parts + "," + user_name + "," +
+            group_names + ")" );
     List<Partition> parts = client.get_partitions_ps_with_auth(db_name,
         tbl_name, part_vals, max_parts, user_name, group_names);
     return fastpath ? parts : deepCopyPartitions(filterHook.filterPartitions(parts));
@@ -1290,7 +1290,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       String filter, short max_parts) throws MetaException,
          NoSuchObjectException, TException {
     LOG.warn("HMS Trace: get_partitions_by_filter(" + db_name + "," +
-            tbl_name + "," + filter.toString() + "," + max_parts + ")" );
+            tbl_name + "," + filter + "," + max_parts + ")" );
     List<Partition> parts = client.get_partitions_by_filter(db_name, tbl_name, filter, max_parts);
     return fastpath ? parts :deepCopyPartitions(filterHook.filterPartitions(parts));
   }
@@ -1300,7 +1300,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
                                                        String filter, int max_parts) throws MetaException,
          NoSuchObjectException, TException {
     LOG.warn("HMS Trace: get_part_specs_by_filter(" + db_name + "," +
-            tbl_name + "," + filter.toString() + "," + max_parts + ")" );
+            tbl_name + "," + filter + "," + max_parts + ")" );
     return PartitionSpecProxy.Factory.get(filterHook.filterPartitionSpecs(
         client.get_part_specs_by_filter(db_name, tbl_name, filter, max_parts)));
   }
@@ -1320,7 +1320,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     }
     PartitionsByExprResult r = null;
     try {
-      LOG.warn("HMS Trace: get_partitions_by_expr(" + req.toString() + ")" );
+      LOG.warn("HMS Trace: get_partitions_by_expr(" + req + ")" );
       r = client.get_partitions_by_expr(req);
     } catch (TApplicationException te) {
       // TODO: backward compat for Hive <= 0.12. Can be removed later.
@@ -1371,7 +1371,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public Partition getPartition(String db_name, String tbl_name,
       List<String> part_vals) throws NoSuchObjectException, MetaException, TException {
     LOG.warn("HMS Trace: get_partition(" + db_name + "," + tbl_name + ","
-            + part_vals.toString() + ")");
+            + part_vals + ")");
     Partition p = client.get_partition(db_name, tbl_name, part_vals);
     return fastpath ? p : deepCopy(filterHook.filterPartition(p));
   }
@@ -1380,7 +1380,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public List<Partition> getPartitionsByNames(String db_name, String tbl_name,
       List<String> part_names) throws NoSuchObjectException, MetaException, TException {
     LOG.warn("HMS Trace: get_partitions_by_names(" + db_name + "," +
-            tbl_name + "," + part_names.toString() + ")");
+            tbl_name + "," + part_names + ")");
     List<Partition> parts = client.get_partitions_by_names(db_name, tbl_name, part_names);
     return fastpath ? parts : deepCopyPartitions(filterHook.filterPartitions(parts));
   }
@@ -1398,7 +1398,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       throws MetaException, UnknownTableException, NoSuchObjectException,
       TException {
     LOG.warn("HMS Trace: get_partition_with_auth(" + db_name + "," +
-            tbl_name + "," + part_vals.toString() + "," + user_name + "," + group_names.toString() + ")");
+            tbl_name + "," + part_vals + "," + user_name + "," + group_names + ")");
     Partition p = client.get_partition_with_auth(db_name, tbl_name, part_vals, user_name,
         group_names);
     return fastpath ? p : deepCopy(filterHook.filterPartition(p));
@@ -1436,7 +1436,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public List<Table> getTableObjectsByName(String dbName, List<String> tableNames)
       throws MetaException, InvalidOperationException, UnknownDBException, TException {
-    LOG.warn("HMS Trace: get_table_objects_by_name(" + dbName + "," + tableNames.toString() + ")");
+    LOG.warn("HMS Trace: get_table_objects_by_name(" + dbName + "," + tableNames + ")");
     List<Table> tabs = client.get_table_objects_by_name(dbName, tableNames);
     return fastpath ? tabs : deepCopyTables(filterHook.filterTables(tabs));
   }
@@ -1482,7 +1482,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public List<String> getTables(String dbname, String tablePattern, TableType tableType) throws MetaException {
     try {
       LOG.warn("HMS Trace: get_tables_by_type(" + dbname +
-              "," + tablePattern + "," + tableType.toString() + ")");
+              "," + tablePattern + "," + tableType + ")");
       return filterHook.filterTableNames(dbname, client.get_tables_by_type(dbname, tablePattern, tableType.toString()));
     } catch (Exception e) {
       MetaStoreUtils.logAndThrowMetaException(e);
@@ -1495,7 +1495,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       throws MetaException {
     try {
       LOG.warn("HMS Trace: get_table_meta("+ dbPatterns + "," + tablePatterns +
-              "," + tableTypes.toString() +")");
+              "," + tableTypes +")");
       return filterNames(client.get_table_meta(dbPatterns, tablePatterns, tableTypes));
     } catch (Exception e) {
       MetaStoreUtils.logAndThrowMetaException(e);
@@ -1598,7 +1598,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void alter_partition(String dbName, String tblName, Partition newPart)
       throws InvalidOperationException, MetaException, TException {
     LOG.warn("HMS Trace: alter_partition("+ dbName + ","
-            + tblName + "," + newPart.toString() + "," + ")");
+            + tblName + "," + newPart + "," + ")");
     client.alter_partition(dbName, tblName, newPart);
   }
 
@@ -1607,11 +1607,11 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       throws InvalidOperationException, MetaException, TException {
     if (environmentContext == null) {
       LOG.warn("HMS Trace: alter_partition("+ dbName + ","
-              + tblName + "," + newPart.toString() + "," + ")");
+              + tblName + "," + newPart + "," + ")");
       client.alter_partition(dbName, tblName, newPart);
     } else {
       LOG.warn("HMS Trace: alter_partition_with_environment_context("+ dbName + ","
-              + tblName + "," + newPart.toString() + "," + environmentContext.toString() + ")");
+              + tblName + "," + newPart + "," + environmentContext + ")");
       client.alter_partition_with_environment_context(dbName, tblName, newPart, environmentContext);
     }
   }
@@ -1620,7 +1620,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void alter_partitions(String dbName, String tblName, List<Partition> newParts)
       throws InvalidOperationException, MetaException, TException {
     LOG.warn("HMS Trace: alter_partitions("+ dbName + ","
-            + tblName + "," + newParts.toString() + "," + ")");
+            + tblName + "," + newParts + "," + ")");
     client.alter_partitions(dbName, tblName, newParts);
   }
 
@@ -1629,11 +1629,11 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   throws InvalidOperationException, MetaException, TException {
     if (environmentContext == null) {
       LOG.warn("HMS Trace: alter_partitions("+ dbName + ","
-              + tblName + "," + newParts.toString() + "," + ")");
+              + tblName + "," + newParts + "," + ")");
       client.alter_partitions(dbName, tblName, newParts);
     } else {
       LOG.warn("HMS Trace: alter_partitions_with_environment_context("+ dbName + ","
-              + tblName + "," + newParts.toString() + "," + environmentContext.toString() + ")");
+              + tblName + "," + newParts + "," + environmentContext + ")");
       client.alter_partitions_with_environment_context(dbName, tblName, newParts, environmentContext);
     }
 }
@@ -1641,7 +1641,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public void alterDatabase(String dbName, Database db)
       throws MetaException, NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: alter_database("+ dbName + "," + db.toString() + ")");
+    LOG.warn("HMS Trace: alter_database("+ dbName + "," + db + ")");
     client.alter_database(dbName, db);
   }
   /**
@@ -1675,7 +1675,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
    */
   @Override
   public void createIndex(Index index, Table indexTable) throws AlreadyExistsException, InvalidObjectException, MetaException, NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: add_index("+ index.toString() + "," + indexTable.toString() + ")");
+    LOG.warn("HMS Trace: add_index("+ index + "," + indexTable + ")");
     client.add_index(index, indexTable);
   }
 
@@ -1694,7 +1694,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void alter_index(String dbname, String base_tbl_name, String idx_name, Index new_idx)
       throws InvalidOperationException, MetaException, TException {
     LOG.warn("HMS Trace: alter_index("+ dbname + "," + base_tbl_name + "," + idx_name +
-            "," + new_idx.toString() + ")");
+            "," + new_idx + ")");
     client.alter_index(dbname, base_tbl_name, idx_name, new_idx);
   }
 
@@ -1753,14 +1753,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public List<SQLPrimaryKey> getPrimaryKeys(PrimaryKeysRequest req)
     throws MetaException, NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: get_primary_keys("+ req.toString() + ")");
+    LOG.warn("HMS Trace: get_primary_keys("+ req + ")");
     return client.get_primary_keys(req).getPrimaryKeys();
   }
 
   @Override
   public List<SQLForeignKey> getForeignKeys(ForeignKeysRequest req) throws MetaException,
     NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: get_foreign_keys("+ req.toString() + ")");
+    LOG.warn("HMS Trace: get_foreign_keys("+ req + ")");
     return client.get_foreign_keys(req).getForeignKeys();
   }
 
@@ -1772,7 +1772,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public boolean updateTableColumnStatistics(ColumnStatistics statsObj)
     throws NoSuchObjectException, InvalidObjectException, MetaException, TException,
     InvalidInputException{
-    LOG.warn("HMS Trace: update_table_column_statistics("+ statsObj.toString() + ")");
+    LOG.warn("HMS Trace: update_table_column_statistics("+ statsObj + ")");
     return client.update_table_column_statistics(statsObj);
   }
 
@@ -1783,7 +1783,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public boolean updatePartitionColumnStatistics(ColumnStatistics statsObj)
     throws NoSuchObjectException, InvalidObjectException, MetaException, TException,
     InvalidInputException{
-    LOG.warn("HMS Trace: update_partition_column_statistics("+ statsObj.toString() + ")");
+    LOG.warn("HMS Trace: update_partition_column_statistics("+ statsObj + ")");
     return client.update_partition_column_statistics(statsObj);
   }
 
@@ -1792,7 +1792,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public boolean setPartitionColumnStatistics(SetPartitionsStatsRequest request)
     throws NoSuchObjectException, InvalidObjectException, MetaException, TException,
     InvalidInputException{
-    LOG.warn("HMS Trace: set_aggr_stats_for("+ request.toString() + ")");
+    LOG.warn("HMS Trace: set_aggr_stats_for("+ request + ")");
     return client.set_aggr_stats_for(request);
   }
 
@@ -1871,7 +1871,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
          envCxt = new EnvironmentContext(props);
        }
     LOG.warn("HMS Trace: get_schema_with_environment_context(" + db
-            + "," + tableName + "," + envCxt.toString() + ")");
+            + "," + tableName + "," + envCxt + ")");
     List<FieldSchema> fields = client.get_schema_with_environment_context(db, tableName, envCxt);
     return fastpath ? fields : deepCopyFieldSchemas(fields);
   }
@@ -1900,7 +1900,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       EnvironmentContext envContext) throws InvalidObjectException, AlreadyExistsException,
       MetaException, TException {
     LOG.warn("HMS Trace: append_partition_by_name_with_environment_context(" + dbName  + "," +
-            tableName + "," + partName + "," + envContext.toString() +")");
+            tableName + "," + partName + "," + envContext +")");
     Partition p = client.append_partition_by_name_with_environment_context(dbName, tableName,
         partName, envContext);
     return fastpath ? p : deepCopy(p);
@@ -1915,7 +1915,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       boolean deleteData, EnvironmentContext envContext) throws NoSuchObjectException,
       MetaException, TException {
     LOG.warn("HMS Trace: drop_partition_by_name_with_environment_context(" + dbName  + "," +
-            tableName + "," + partName + "," + deleteData + "," + envContext.toString() +")");
+            tableName + "," + partName + "," + deleteData + "," + envContext +")");
     return client.drop_partition_by_name_with_environment_context(dbName, tableName, partName,
         deleteData, envContext);
   }
@@ -2067,7 +2067,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     req.setGrantor(grantor);
     req.setGrantorType(grantorType);
     req.setGrantOption(grantOption);
-    LOG.warn("HMS Trace: grant_revoke_role(" + req.toString() +")");
+    LOG.warn("HMS Trace: grant_revoke_role(" + req +")");
     GrantRevokeRoleResponse res = client.grant_revoke_role(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokeResponse missing success field");
@@ -2078,7 +2078,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public boolean create_role(Role role)
       throws MetaException, TException {
-    LOG.warn("HMS Trace: create_role(" + role.toString() +")");
+    LOG.warn("HMS Trace: create_role(" + role +")");
     return client.create_role(role);
   }
 
@@ -2091,7 +2091,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public List<Role> list_roles(String principalName,
       PrincipalType principalType) throws MetaException, TException {
-    LOG.warn("HMS Trace: list_roles(" + principalName + "," + principalType.toString() +")");
+    LOG.warn("HMS Trace: list_roles(" + principalName + "," + principalType +")");
     return client.list_roles(principalName, principalType);
   }
 
@@ -2104,14 +2104,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public GetPrincipalsInRoleResponse get_principals_in_role(GetPrincipalsInRoleRequest req)
       throws MetaException, TException {
-    LOG.warn("HMS Trace: get_principals_in_role(" + req.toString() +")");
+    LOG.warn("HMS Trace: get_principals_in_role(" + req +")");
     return client.get_principals_in_role(req);
   }
 
   @Override
   public GetRoleGrantsForPrincipalResponse get_role_grants_for_principal(
       GetRoleGrantsForPrincipalRequest getRolePrincReq) throws MetaException, TException {
-    LOG.warn("HMS Trace: get_role_grants_for_principal(" + getRolePrincReq.toString() +")");
+    LOG.warn("HMS Trace: get_role_grants_for_principal(" + getRolePrincReq +")");
     return client.get_role_grants_for_principal(getRolePrincReq);
   }
 
@@ -2121,7 +2121,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     GrantRevokePrivilegeRequest req = new GrantRevokePrivilegeRequest();
     req.setRequestType(GrantRevokeType.GRANT);
     req.setPrivileges(privileges);
-    LOG.warn("HMS Trace: grant_revoke_privileges(" + req.toString() +")");
+    LOG.warn("HMS Trace: grant_revoke_privileges(" + req +")");
     GrantRevokePrivilegeResponse res = client.grant_revoke_privileges(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokePrivilegeResponse missing success field");
@@ -2138,7 +2138,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     req.setPrincipalName(userName);
     req.setPrincipalType(principalType);
     req.setGrantOption(grantOption);
-    LOG.warn("HMS Trace: grant_revoke_role(" + req.toString() +")");
+    LOG.warn("HMS Trace: grant_revoke_role(" + req +")");
     GrantRevokeRoleResponse res = client.grant_revoke_role(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokeResponse missing success field");
@@ -2153,7 +2153,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     req.setRequestType(GrantRevokeType.REVOKE);
     req.setPrivileges(privileges);
     req.setRevokeGrantOption(grantOption);
-    LOG.warn("HMS Trace: grant_revoke_privileges(" + req.toString() +")");
+    LOG.warn("HMS Trace: grant_revoke_privileges(" + req +")");
     GrantRevokePrivilegeResponse res = client.grant_revoke_privileges(req);
     if (!res.isSetSuccess()) {
       throw new MetaException("GrantRevokePrivilegeResponse missing success field");
@@ -2165,8 +2165,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public PrincipalPrivilegeSet get_privilege_set(HiveObjectRef hiveObject,
       String userName, List<String> groupNames) throws MetaException,
       TException {
-    LOG.warn("HMS Trace: get_privilege_set(" + hiveObject.toString() + "," + userName
-            + "," + groupNames.toString() +")");
+    LOG.warn("HMS Trace: get_privilege_set(" + hiveObject + "," + userName
+            + "," + groupNames +")");
     return client.get_privilege_set(hiveObject, userName, groupNames);
   }
 
@@ -2174,8 +2174,8 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public List<HiveObjectPrivilege> list_privileges(String principalName,
       PrincipalType principalType, HiveObjectRef hiveObject)
       throws MetaException, TException {
-    LOG.warn("HMS Trace: list_privileges(" + principalName + "," + principalType.toString()
-            + "," + hiveObject.toString() +")");
+    LOG.warn("HMS Trace: list_privileges(" + principalName + "," + principalType
+            + "," + hiveObject +")");
     return client.list_privileges(principalName, principalType, hiveObject);
   }
 
@@ -2327,7 +2327,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public LockResponse lock(LockRequest request)
       throws NoSuchTxnException, TxnAbortedException, TException {
-    LOG.warn("HMS Trace: lock(" + request.toString() +")");
+    LOG.warn("HMS Trace: lock(" + request +")");
     return client.lock(request);
   }
 
@@ -2355,7 +2355,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
 
   @Override
   public ShowLocksResponse showLocks(ShowLocksRequest request) throws TException {
-    LOG.warn("HMS Trace: show_locks(" + request.toString() +")");
+    LOG.warn("HMS Trace: show_locks(" + request +")");
     return client.show_locks(request);
   }
 
@@ -2366,7 +2366,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     HeartbeatRequest hb = new HeartbeatRequest();
     hb.setLockid(lockid);
     hb.setTxnid(txnid);
-    LOG.warn("HMS Trace: heartbeat(" + hb.toString() +")");
+    LOG.warn("HMS Trace: heartbeat(" + hb +")");
     client.heartbeat(hb);
   }
 
@@ -2374,7 +2374,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public HeartbeatTxnRangeResponse heartbeatTxnRange(long min, long max)
     throws NoSuchTxnException, TxnAbortedException, TException {
     HeartbeatTxnRangeRequest rqst = new HeartbeatTxnRangeRequest(min, max);
-    LOG.warn("HMS Trace: heartbeat_txn_range(" + rqst.toString() +")");
+    LOG.warn("HMS Trace: heartbeat_txn_range(" + rqst +")");
     return client.heartbeat_txn_range(rqst);
   }
 
@@ -2388,7 +2388,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     cr.setTablename(tableName);
     if (partitionName != null) cr.setPartitionname(partitionName);
     cr.setType(type);
-    LOG.warn("HMS Trace: compact(" + cr.toString() +")");
+    LOG.warn("HMS Trace: compact(" + cr +")");
     client.compact(cr);
   }
   @Deprecated
@@ -2408,7 +2408,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     if (partitionName != null) cr.setPartitionname(partitionName);
     cr.setType(type);
     cr.setProperties(tblproperties);
-    LOG.warn("HMS Trace: compact2(" + cr.toString() +")");
+    LOG.warn("HMS Trace: compact2(" + cr +")");
     return client.compact2(cr);
   }
   @Override
@@ -2429,7 +2429,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
                                    List<String> partNames, DataOperationType operationType) throws TException {
     AddDynamicPartitions adp = new AddDynamicPartitions(txnId, dbName, tableName, partNames);
     adp.setOperationType(operationType);
-    LOG.warn("HMS Trace: add_dynamic_partitions(" + adp.toString() +")");
+    LOG.warn("HMS Trace: add_dynamic_partitions(" + adp +")");
     client.add_dynamic_partitions(adp);
   }
 
@@ -2458,7 +2458,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
                                                        NotificationFilter filter) throws TException {
     NotificationEventRequest rqst = new NotificationEventRequest(lastEventId);
     rqst.setMaxEvents(maxEvents);
-    LOG.warn("HMS Trace: get_next_notification(" + rqst.toString() +")");
+    LOG.warn("HMS Trace: get_next_notification(" + rqst +")");
     NotificationEventResponse rsp = client.get_next_notification(rqst);
     LOG.debug("Got back " + rsp.getEventsSize() + " events");
     if (filter == null) {
@@ -2484,7 +2484,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @InterfaceAudience.LimitedPrivate({"Apache Hive, HCatalog"})
   @Override
   public FireEventResponse fireListenerEvent(FireEventRequest rqst) throws TException {
-    LOG.warn("HMS Trace: fire_listener_event(" + rqst.toString() + ")");
+    LOG.warn("HMS Trace: fire_listener_event(" + rqst + ")");
     return client.fire_listener_event(rqst);
   }
 
@@ -2532,7 +2532,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert tbl_name != null;
     assert partKVs != null;
     LOG.warn("HMS Trace: markPartitionForEvent(" + db_name + "," +
-            tbl_name + "," + partKVs.toString() + "," + eventType.toString() + ")");
+            tbl_name + "," + partKVs + "," + eventType + ")");
     client.markPartitionForEvent(db_name, tbl_name, partKVs, eventType);
   }
 
@@ -2544,14 +2544,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert tbl_name != null;
     assert partKVs != null;
     LOG.warn("HMS Trace: isPartitionMarkedForEvent(" + db_name + "," +
-            tbl_name + "," + partKVs.toString() + "," + eventType.toString() + ")");
+            tbl_name + "," + partKVs + "," + eventType + ")");
     return client.isPartitionMarkedForEvent(db_name, tbl_name, partKVs, eventType);
   }
 
   @Override
   public void createFunction(Function func) throws InvalidObjectException,
       MetaException, TException {
-    LOG.warn("HMS Trace: create_function(" + func.toString() + ")");
+    LOG.warn("HMS Trace: create_function(" + func + ")");
     client.create_function(func);
   }
 
@@ -2559,7 +2559,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void alterFunction(String dbName, String funcName, Function newFunction)
       throws InvalidObjectException, MetaException, TException {
     LOG.warn("HMS Trace: alter_function(" + dbName + "," + funcName +
-            "," + newFunction.toString() + ")");
+            "," + newFunction + ")");
     client.alter_function(dbName, funcName, newFunction);
   }
 
@@ -2596,7 +2596,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   protected void create_table_with_environment_context(Table tbl, EnvironmentContext envContext)
       throws AlreadyExistsException, InvalidObjectException,
       MetaException, NoSuchObjectException, TException {
-    LOG.warn("HMS Trace: create_table_with_environment_context("+ String.valueOf(tbl) + "," + String.valueOf(envContext) +")");
+    LOG.warn("HMS Trace: create_table_with_environment_context("+ tbl + "," + envContext +")");
     client.create_table_with_environment_context(tbl, envContext);
   }
 
@@ -2604,7 +2604,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       boolean deleteData, EnvironmentContext envContext) throws MetaException, TException,
       NoSuchObjectException, UnsupportedOperationException {
     LOG.warn("HMS Trace: drop_table_with_environment_context("+ dbname
-            + "," + name + "," + deleteData + "," + envContext.toString() +")");
+            + "," + name + "," + deleteData + "," + envContext +")");
     client.drop_table_with_environment_context(dbname, name, deleteData, envContext);
   }
 
@@ -2616,7 +2616,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       return new AggrStats(new ArrayList<ColumnStatisticsObj>(),0); // Nothing to aggregate
     }
     PartitionsStatsRequest req = new PartitionsStatsRequest(dbName, tblName, colNames, partNames);
-    LOG.warn("HMS Trace: get_aggr_stats_for(" + req.toString() + ")");
+    LOG.warn("HMS Trace: get_aggr_stats_for(" + req + ")");
     return client.get_aggr_stats_for(req);
   }
 
@@ -2670,7 +2670,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       ByteBuffer sarg, List<Long> fileIds, boolean doGetFooters) throws TException {
     GetFileMetadataByExprRequest req = new GetFileMetadataByExprRequest(fileIds, sarg);
     req.setDoGetFooters(doGetFooters); // No need to get footers
-    LOG.warn("HMS Trace: get_file_metadata_by_expr("+ req.toString() +")");
+    LOG.warn("HMS Trace: get_file_metadata_by_expr("+ req +")");
     return client.get_file_metadata_by_expr(req);
   }
 
@@ -2723,7 +2723,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void clearFileMetadata(List<Long> fileIds) throws TException {
     ClearFileMetadataRequest req = new ClearFileMetadataRequest();
     req.setFileIds(fileIds);
-    LOG.warn("HMS Trace: clear_file_metadata("+ req.toString() +")");
+    LOG.warn("HMS Trace: clear_file_metadata("+ req +")");
     client.clear_file_metadata(req);
   }
 
@@ -2732,7 +2732,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     PutFileMetadataRequest req = new PutFileMetadataRequest();
     req.setFileIds(fileIds);
     req.setMetadata(metadata);
-    LOG.warn("HMS Trace: put_file_metadata("+ req.toString() +")");
+    LOG.warn("HMS Trace: put_file_metadata("+ req +")");
     client.put_file_metadata(req);
   }
 
@@ -2752,7 +2752,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     } else {
       req.setIsAllParts(allParts);
     }
-    LOG.warn("HMS Trace: cache_file_metadata("+ req.toString() +")");
+    LOG.warn("HMS Trace: cache_file_metadata("+ req +")");
     CacheFileMetadataResult result = client.cache_file_metadata(req);
     return result.isIsSupported();
   }
