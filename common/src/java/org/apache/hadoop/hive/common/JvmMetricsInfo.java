@@ -18,9 +18,9 @@
 
 package org.apache.hadoop.hive.common;
 
-import org.apache.hadoop.metrics2.MetricsInfo;
+import com.google.common.base.Objects;
 
-import org.apache.hive.common.guava.Objects;
+import org.apache.hadoop.metrics2.MetricsInfo;
 
 /**
  * JVM and logging related metrics info instances. Ported from Hadoop JvmMetricsInfo.

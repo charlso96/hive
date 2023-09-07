@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -462,9 +461,7 @@ public class LineageLogger implements ExecuteWithHookContext {
    */
   private String getQueryHash(String queryStr) {
     Hasher hasher = Hashing.md5().newHasher();
-    // HIVE-27560: In order to support Guava 16+,
-    // need to call `putString` method with `Charset` parameter.
-    hasher.putString(queryStr, StandardCharsets.UTF_8);
+    hasher.putString(queryStr);
     return hasher.hash().toString();
   }
 }

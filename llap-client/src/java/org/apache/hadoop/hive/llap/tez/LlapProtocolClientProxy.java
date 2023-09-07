@@ -65,7 +65,6 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.service.AbstractService;
-import org.apache.hive.common.guava.SameThreadExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,8 +121,6 @@ public class LlapProtocolClientProxy extends AbstractService {
   @Override
   public void serviceStart() {
     requestManagerFuture = requestManagerExecutor.submit(requestManager);
-    // HIVE-27560: In order to support Guava 26+, need to use the `addCallback`
-    // method with `Executor` parameter.
     Futures.addCallback(requestManagerFuture, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
@@ -134,7 +131,7 @@ public class LlapProtocolClientProxy extends AbstractService {
       public void onFailure(Throwable t) {
         LOG.warn("RequestManager shutdown with error", t);
       }
-    }, SameThreadExecutorUtil.sameThreadExecutor());
+    });
   }
 
   @Override
@@ -266,9 +263,7 @@ public class LlapProtocolClientProxy extends AbstractService {
     void submitToExecutor(CallableRequest request, LlapNodeId nodeId) {
       ListenableFuture<SourceStateUpdatedResponseProto> future =
           executor.submit(request);
-      // HIVE-27560: In order to support Guava 26+, need to use the `addCallback` method with `Executor` parameter.
-      Futures.addCallback(future, new ResponseCallback(request.getCallback(), nodeId, this),
-        SameThreadExecutorUtil.sameThreadExecutor());
+      Futures.addCallback(future, new ResponseCallback(request.getCallback(), nodeId, this));
     }
 
     @VisibleForTesting

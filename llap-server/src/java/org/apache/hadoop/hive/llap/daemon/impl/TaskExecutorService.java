@@ -52,7 +52,6 @@ import org.apache.hadoop.hive.llap.metrics.LlapDaemonExecutorMetrics;
 import org.apache.hadoop.hive.llap.tezplugins.helpers.MonotonicClock;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.util.Clock;
-import org.apache.hive.common.guava.SameThreadExecutorUtil;
 import org.apache.tez.runtime.task.EndReason;
 import org.apache.tez.runtime.task.TaskRunner2Result;
 import org.slf4j.Logger;
@@ -169,8 +168,7 @@ public class TaskExecutorService extends AbstractService
     executionCompletionExecutorService = MoreExecutors.listeningDecorator(
         executionCompletionExecutorServiceRaw);
     ListenableFuture<?> future = waitQueueExecutorService.submit(new WaitQueueWorker());
-    // HIVE-27560: In order to support Guava 26+, need to use the `addCallback` method with `Executor` parameter.
-    Futures.addCallback(future, new WaitQueueWorkerCallback(), SameThreadExecutorUtil.sameThreadExecutor());
+    Futures.addCallback(future, new WaitQueueWorkerCallback());
   }
 
   private Comparator<TaskWrapper> createComparator(

@@ -104,10 +104,6 @@ public class MetricsCollection {
       public boolean apply(TaskInfo input) {
         return jobId == input.jobId && stageId == input.stageId && taskId == input.taskId;
       }
-      // HIVE-27560: In order to support Guava 21+, need to add the `test` method.
-      public boolean test(TaskInfo input) {
-        return this.apply(input);
-      }
     };
     lock.readLock().lock();
     try {
@@ -261,10 +257,6 @@ public class MetricsCollection {
     public boolean apply(TaskInfo input) {
       return jobId == input.jobId;
     }
-    // HIVE-27560: In order to support Guava 21+, need to add the `test` method.
-    public boolean test(TaskInfo input) {
-      return this.apply(input);
-    }
 
   }
 
@@ -281,10 +273,6 @@ public class MetricsCollection {
     @Override
     public boolean apply(TaskInfo input) {
       return jobId == input.jobId && stageId == input.stageId;
-    }
-    // HIVE-27560: In order to support Guava 21+, need to add the `test` method.
-    public boolean test(TaskInfo input) {
-      return this.apply(input);
     }
 
   }

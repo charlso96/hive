@@ -19,7 +19,7 @@ package org.apache.hadoop.hive.llap.metrics;
 
 import org.apache.hadoop.metrics2.MetricsInfo;
 
-import org.apache.hive.common.guava.Objects;
+import com.google.common.base.Objects;
 
 /**
  * Llap daemon JVM info. These are some additional metrics that are not exposed via

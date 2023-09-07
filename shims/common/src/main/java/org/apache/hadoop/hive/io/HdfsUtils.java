@@ -193,10 +193,6 @@ public class HdfsUtils {
         }
         return false;
       }
-
-      public boolean test(AclEntry input) {
-        return this.apply(input);
-      }
     });
   }
 

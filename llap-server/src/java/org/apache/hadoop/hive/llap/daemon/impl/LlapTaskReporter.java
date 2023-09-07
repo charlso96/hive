@@ -37,7 +37,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.hive.llap.counters.FragmentCountersMap;
 import org.apache.hadoop.hive.llap.daemon.SchedulerFragmentCompletingListener;
 import org.apache.hadoop.hive.llap.protocol.LlapTaskUmbilicalProtocol;
-import org.apache.hive.common.guava.SameThreadExecutorUtil;
 import org.apache.tez.common.counters.TezCounters;
 import org.apache.tez.dag.api.TezException;
 import org.apache.tez.dag.records.TezTaskAttemptID;
@@ -124,8 +123,7 @@ public class LlapTaskReporter implements TaskReporterInterface {
     currentCallable = new HeartbeatCallable(completionListener, task, umbilical, pollInterval, sendCounterInterval,
         maxEventsToGet, requestCounter, containerIdStr, initialEvent, fragmentRequestId);
     ListenableFuture<Boolean> future = heartbeatExecutor.submit(currentCallable);
-    // HIVE-27560: In order to support Guava 26+, need to use the `addCallback` method with `Executor` parameter.
-    Futures.addCallback(future, new HeartbeatCallback(errorReporter), SameThreadExecutorUtil.sameThreadExecutor());
+    Futures.addCallback(future, new HeartbeatCallback(errorReporter));
   }
 
   /**
