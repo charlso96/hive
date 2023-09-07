@@ -124,11 +124,6 @@ public class DummyRawStoreControlledCommit implements RawStore, Configurable {
   }
 
   @Override
-  public boolean openTransaction(String isolationLevel) {
-    return objectStore.openTransaction(isolationLevel);
-  }
-
-  @Override
   public void rollbackTransaction() {
     objectStore.rollbackTransaction();
   }

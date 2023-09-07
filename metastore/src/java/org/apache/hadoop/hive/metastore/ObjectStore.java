@@ -169,7 +169,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -561,31 +560,17 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   /**
-   * Opens a new one or the one already created. Every call of this function must
-   * have corresponding commit or rollback function call.
+   * Opens a new one or the one already created Every call of this function must
+   * have corresponding commit or rollback function call
    *
    * @return an active transaction
    */
+
   @Override
   public boolean openTransaction() {
-    return openTransaction(null);
-  }
-
-  /**
-   * Opens a new one or the one already created. Every call of this function must
-   * have corresponding commit or rollback function call.
-   *
-   * @param isolationLevel The transaction isolation level. Only possible to set on the first call.
-   * @return an active transaction
-   */
-  @Override
-  public boolean openTransaction(String isolationLevel) {
     openTrasactionCalls++;
     if (openTrasactionCalls == 1) {
       currentTransaction = pm.currentTransaction();
-      if (isolationLevel != null) {
-        currentTransaction.setIsolationLevel(isolationLevel);
-      }
       currentTransaction.begin();
       transactionStatus = TXN_STATUS.OPEN;
     } else {
@@ -595,16 +580,10 @@ public class ObjectStore implements RawStore, Configurable {
         throw new RuntimeException("openTransaction called in an interior"
             + " transaction scope, but currentTransaction is not active.");
       }
-
-      // Can not change the isolation level on an already open transaction
-      if (isolationLevel != null && !isolationLevel.equals(currentTransaction.getIsolationLevel())) {
-        throw new RuntimeException("Can not set isolation level on an open transaction");
-      }
     }
 
     boolean result = currentTransaction.isActive();
-    debugLog("Open transaction: count = " + openTrasactionCalls + ", isActive = " + result + ", isolationLevel = "
-            + currentTransaction.getIsolationLevel());
+    debugLog("Open transaction: count = " + openTrasactionCalls + ", isActive = " + result);
     return result;
   }
 
@@ -2586,69 +2565,34 @@ public class ObjectStore implements RawStore, Configurable {
     return (Collection) query.execute(dbName, tableName, partNameMatcher);
   }
 
-  /**
-   * If partVals all the values are empty strings, it means we are returning
-   * all the partitions and hence we can attempt to use a directSQL equivalent API which
-   * is considerably faster.
-   * @param partVals The partitions values used to filter out the partitions.
-   * @return true only when partVals is non-empty and contains only empty strings,
-   * otherwise false. If user or groups is valid then returns false since the directSQL
-   * doesn't support partition privileges.
-   */
-  private boolean canTryDirectSQL(List<String> partVals) {
-    if (partVals.isEmpty()) {
-      return false;
-    }
-    for (String val : partVals) {
-      if (val != null && !val.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   @Override
   public List<Partition> listPartitionsPsWithAuth(String db_name, String tbl_name,
       List<String> part_vals, short max_parts, String userName, List<String> groupNames)
       throws MetaException, InvalidObjectException, NoSuchObjectException {
-    List<Partition> partitions = new ArrayList<>();
+    List<Partition> partitions = new ArrayList<Partition>();
     boolean success = false;
     QueryWrapper queryWrapper = new QueryWrapper();
+
     try {
       openTransaction();
-
-      MTable mtbl = getMTable(db_name, tbl_name);
-      if (mtbl == null) {
-        throw new NoSuchObjectException(db_name +  "." + tbl_name + " table not found");
-      }
-      boolean getauth = null != userName && null != groupNames &&
-          "TRUE".equalsIgnoreCase(mtbl.getParameters().get("PARTITION_LEVEL_PRIVILEGE"));
-      if(!getauth && canTryDirectSQL(part_vals)) {
-        LOG.debug(
-            "Redirecting to directSQL enabled API: db: {} tbl: {} partVals: {}",
-            db_name, tbl_name, Joiner.on(',').join(part_vals));
-        return getPartitions(db_name, tbl_name, -1);
-      }
       LOG.debug("executing listPartitionNamesPsWithAuth");
-      Collection parts = getPartitionPsQueryResults(db_name, tbl_name, part_vals,
-          max_parts, null, queryWrapper);
+      Collection parts = getPartitionPsQueryResults(db_name, tbl_name,
+          part_vals, max_parts, null, queryWrapper);
+      MTable mtbl = getMTable(db_name, tbl_name);
       for (Object o : parts) {
         Partition part = convertToPart((MPartition) o);
-        if (getauth) {
-          // set auth privileges
+        //set auth privileges
+        if (null != userName && null != groupNames &&
+            "TRUE".equalsIgnoreCase(mtbl.getParameters().get("PARTITION_LEVEL_PRIVILEGE"))) {
           String partName = Warehouse.makePartName(this.convertToFieldSchemas(mtbl
-                  .getPartitionKeys()), part.getValues());
+              .getPartitionKeys()), part.getValues());
           PrincipalPrivilegeSet partAuth = getPartitionPrivilegeSet(db_name,
-                  tbl_name, partName, userName, groupNames);
+              tbl_name, partName, userName, groupNames);
           part.setPrivileges(partAuth);
         }
         partitions.add(part);
       }
       success = commitTransaction();
-    } catch (InvalidObjectException | NoSuchObjectException | MetaException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new MetaException(e.getMessage());
     } finally {
       rollbackAndCleanup(success, queryWrapper);
     }

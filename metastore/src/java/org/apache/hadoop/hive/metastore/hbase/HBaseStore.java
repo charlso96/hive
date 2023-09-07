@@ -130,12 +130,6 @@ public class HBaseStore implements RawStore {
     return true;
   }
 
-
-  @Override
-  public boolean openTransaction(String isolationLevel) {
-    throw new UnsupportedOperationException("Not supported");
-  }
-
   @Override
   public boolean commitTransaction() {
     if (--txnNestLevel == 0) {

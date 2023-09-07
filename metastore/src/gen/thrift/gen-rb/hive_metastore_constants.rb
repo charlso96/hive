@@ -55,7 +55,3 @@ TABLE_NO_AUTO_COMPACT = %q"no_auto_compaction"
 
 TABLE_TRANSACTIONAL_PROPERTIES = %q"transactional_properties"
 
-EXPECTED_PARAMETER_KEY = %q"expected_parameter_key"
-
-EXPECTED_PARAMETER_VALUE = %q"expected_parameter_value"
-

@@ -1099,10 +1099,11 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Table get_table(1:string dbname, 2:string tbl_name)
                        throws (1:MetaException o1, 2:NoSuchObjectException o2)
   list<Table> get_table_objects_by_name(1:string dbname, 2:list<string> tbl_names)
-                   throws (1:MetaException o1, 2:InvalidOperationException o2, 3:UnknownDBException o3)
   GetTableResult get_table_req(1:GetTableRequest req)
                        throws (1:MetaException o1, 2:NoSuchObjectException o2)
   GetTablesResult get_table_objects_by_name_req(1:GetTablesRequest req)
+
+
 				   throws (1:MetaException o1, 2:InvalidOperationException o2, 3:UnknownDBException o3)
 
   // Get a list of table names that match a filter.
@@ -1548,6 +1549,3 @@ const string TABLE_NO_AUTO_COMPACT = "no_auto_compaction",
 const string TABLE_TRANSACTIONAL_PROPERTIES = "transactional_properties",
 
 
-// Keys for alter table environment context parameters
-const string EXPECTED_PARAMETER_KEY = "expected_parameter_key",
-const string EXPECTED_PARAMETER_VALUE = "expected_parameter_value",

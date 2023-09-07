@@ -109,11 +109,6 @@
       <version>${hadoop.version}</version>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>com.lmax</groupId>
-      <artifactId>disruptor</artifactId>
-      <version>${disruptor.version}</version>
-    </dependency>
     <!-- test inter-project -->
     <dependency>
       <groupId>junit</groupId>

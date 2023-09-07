@@ -103,12 +103,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
-
-  @Override
-  public boolean openTransaction(String isolationLevel) {
-    return false;
-  }
-
   @Override
   public boolean commitTransaction() {
 
