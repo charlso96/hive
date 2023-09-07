@@ -68,15 +68,14 @@ import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TApplicationException;
-import org.apache.thrift.TConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.layered.TFramedTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -420,7 +419,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
               String tokenSig = conf.getVar(ConfVars.METASTORE_TOKEN_SIGNATURE);
               // tokenSig could be null
               tokenStrForm = Utils.getTokenStrForm(tokenSig);
-              transport = new TSocket(new TConfiguration(), store.getHost(), store.getPort(), clientSocketTimeout);
+              transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout);
 
               if(tokenStrForm != null) {
                 // authenticate using delegation tokens via the "DIGEST" mechanism
@@ -434,10 +433,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
                     principalConfig, store.getHost(), "KERBEROS", null,
                     transport, MetaStoreUtils.getMetaStoreSaslProperties(conf));
               }
-            } catch (IOException | TTransportException sasle) {
-              // IOException covers SaslException
-              LOG.error("Could not create client transport", sasle);
-              throw new MetaException(sasle.toString());
+            } catch (IOException ioe) {
+              LOG.error("Couldn't create client transport", ioe);
+              throw new MetaException(ioe.toString());
             }
           } else {
             if (useSSL) {
@@ -460,21 +458,11 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
                 throw new MetaException(e.toString());
               }
             } else {
-              try {
-                transport = new TSocket(new TConfiguration(), store.getHost(), store.getPort(), clientSocketTimeout);
-              } catch (TTransportException e) {
-                tte = e;
-                throw new MetaException(e.toString());
-              }
+              transport = new TSocket(store.getHost(), store.getPort(), clientSocketTimeout);
             }
 
             if (useFramedTransport) {
-              try {
-                transport = new TFramedTransport(transport);
-              } catch (TTransportException e) {
-                LOG.error("Failed to create client transport", e);
-                throw new MetaException(e.toString());
-              }
+              transport = new TFramedTransport(transport);
             }
           }
 

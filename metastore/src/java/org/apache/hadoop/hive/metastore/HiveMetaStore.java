@@ -143,11 +143,10 @@ import org.apache.thrift.server.ServerContext;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServerEventHandler;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
-import org.apache.thrift.transport.layered.TFramedTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,7 +210,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public TTransport getTransport(TTransport trans) throws TTransportException {
+    public TTransport getTransport(TTransport trans) {
       return childTransFactory.getTransport(parentTransFactory.getTransport(trans));
     }
   }

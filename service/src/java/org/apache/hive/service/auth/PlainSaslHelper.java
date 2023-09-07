@@ -37,7 +37,10 @@ import org.apache.hive.service.cli.thrift.ThriftCLIService;
 import org.apache.hive.service.rpc.thrift.TCLIService.Iface;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
-import org.apache.thrift.transport.*;
+import org.apache.thrift.transport.TSaslClientTransport;
+import org.apache.thrift.transport.TSaslServerTransport;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportFactory;
 
 public final class PlainSaslHelper {
 
@@ -63,7 +66,7 @@ public final class PlainSaslHelper {
   }
 
   public static TTransport getPlainTransport(String username, String password,
-    TTransport underlyingTransport) throws SaslException, TTransportException {
+    TTransport underlyingTransport) throws SaslException {
     return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String, String>(),
       new PlainCallbackHandler(username, password), underlyingTransport);
   }

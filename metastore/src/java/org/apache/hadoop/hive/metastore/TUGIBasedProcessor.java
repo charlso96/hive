@@ -69,7 +69,7 @@ public class TUGIBasedProcessor<I extends Iface> extends TSetIpAddressProcessor<
 
   @SuppressWarnings("unchecked")
   @Override
-  public void process(final TProtocol in, final TProtocol out) throws TException {
+  public boolean process(final TProtocol in, final TProtocol out) throws TException {
     setIpAddress(in);
 
     final TMessage msg = in.readMessageBegin();
@@ -83,7 +83,7 @@ public class TUGIBasedProcessor<I extends Iface> extends TSetIpAddressProcessor<
       x.write(out);
       out.writeMessageEnd();
       out.getTransport().flush();
-      return;
+      return true;
     }
     TUGIContainingTransport ugiTrans = (TUGIContainingTransport)in.getTransport();
     // Store ugi in transport if the rpc is set_ugi
@@ -95,13 +95,13 @@ public class TUGIBasedProcessor<I extends Iface> extends TSetIpAddressProcessor<
       } catch (Exception e) {
         throw new TException(e.getCause());
       }
-      return;
+      return true;
     }
     UserGroupInformation clientUgi = ugiTrans.getClientUGI();
     if (null == clientUgi){
       // At this point, transport must contain client ugi, if it doesn't then its an old client.
       fn.process(msg.seqid, in, out, iface);
-      return;
+      return true;
     } else { // Found ugi, perform doAs().
       PrivilegedExceptionAction<Void> pvea = new PrivilegedExceptionAction<Void>() {
         @Override
@@ -116,7 +116,7 @@ public class TUGIBasedProcessor<I extends Iface> extends TSetIpAddressProcessor<
       };
       try {
         clientUgi.doAs(pvea);
-        return;
+        return true;
       } catch (RuntimeException rte) {
         if (rte.getCause() instanceof TException) {
           throw (TException)rte.getCause();

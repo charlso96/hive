@@ -56,7 +56,6 @@ import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TJSONProtocol;
-import org.apache.thrift.transport.TTransportException;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
@@ -68,8 +67,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * The JSON implementation of the MessageFactory. Constructs JSON implementations of each
  * message-type.
@@ -79,15 +76,7 @@ public class JSONMessageFactory extends MessageFactory {
   private static final Logger LOG = LoggerFactory.getLogger(JSONMessageFactory.class.getName());
 
   private static JSONMessageDeserializer deserializer = new JSONMessageDeserializer();
-  private static TDeserializer thriftDeSerializer;
-
-  static {
-    try {
-      thriftDeSerializer = new TDeserializer(new TJSONProtocol.Factory());
-    } catch (TTransportException e) {
-      e.printStackTrace();
-    }
-  }
+  private static TDeserializer thriftDeSerializer = new TDeserializer(new TJSONProtocol.Factory());
 
   @Override
   public MessageDeserializer getDeserializer() {
@@ -202,22 +191,22 @@ public class JSONMessageFactory extends MessageFactory {
 
   static String createTableObjJson(Table tableObj) throws TException {
     TSerializer serializer = new TSerializer(new TJSONProtocol.Factory());
-    return serializer.toString(tableObj);
+    return serializer.toString(tableObj, "UTF-8");
   }
 
   static String createPartitionObjJson(Partition partitionObj) throws TException {
     TSerializer serializer = new TSerializer(new TJSONProtocol.Factory());
-    return serializer.toString(partitionObj);
+    return serializer.toString(partitionObj, "UTF-8");
   }
 
   static String createFunctionObjJson(Function functionObj) throws TException {
     TSerializer serializer = new TSerializer(new TJSONProtocol.Factory());
-    return serializer.toString(functionObj);
+    return serializer.toString(functionObj, "UTF-8");
   }
 
   static String createIndexObjJson(Index indexObj) throws TException {
     TSerializer serializer = new TSerializer(new TJSONProtocol.Factory());
-    return serializer.toString(indexObj);
+    return serializer.toString(indexObj, "UTF-8");
   }
 
   public static ObjectNode getJsonTree(NotificationEvent event) throws Exception {

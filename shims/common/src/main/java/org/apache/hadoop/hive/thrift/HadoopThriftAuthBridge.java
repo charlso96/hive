@@ -188,16 +188,12 @@ public abstract class HadoopThriftAuthBridge {
       case DIGEST:
         Token<DelegationTokenIdentifier> t= new Token<DelegationTokenIdentifier>();
         t.decodeFromUrlString(tokenStrForm);
-        try {
-          saslTransport = new TSaslClientTransport(
-              method.getMechanismName(),
-              null,
-              null, SaslRpcServer.SASL_DEFAULT_REALM,
-              saslProps, new SaslClientCallbackHandler(t),
-              underlyingTransport);
-        } catch (TTransportException e) {
-          e.printStackTrace();
-        }
+        saslTransport = new TSaslClientTransport(
+            method.getMechanismName(),
+            null,
+            null, SaslRpcServer.SASL_DEFAULT_REALM,
+            saslProps, new SaslClientCallbackHandler(t),
+            underlyingTransport);
         return new TUGIAssumingTransport(saslTransport, UserGroupInformation.getCurrentUser());
 
       case KERBEROS:
@@ -212,7 +208,7 @@ public abstract class HadoopThriftAuthBridge {
           return UserGroupInformation.getCurrentUser().doAs(
               new PrivilegedExceptionAction<TUGIAssumingTransport>() {
                 @Override
-                public TUGIAssumingTransport run() throws IOException, TTransportException {
+                public TUGIAssumingTransport run() throws IOException {
                   TTransport saslTransport = new TSaslClientTransport(
                     method.getMechanismName(),
                     null,
@@ -550,7 +546,7 @@ public abstract class HadoopThriftAuthBridge {
 
 
       @Override
-      public void process(final TProtocol inProt, final TProtocol outProt) throws TException {
+      public boolean process(final TProtocol inProt, final TProtocol outProt) throws TException {
         TTransport trans = inProt.getTransport();
         if (!(trans instanceof TSaslServerTransport)) {
           throw new TException("Unexpected non-SASL transport " + trans.getClass());
@@ -568,8 +564,7 @@ public abstract class HadoopThriftAuthBridge {
         userAuthMechanism.set(mechanismName);
         if (AuthMethod.PLAIN.getMechanismName().equalsIgnoreCase(mechanismName)) {
           remoteUser.set(endUser);
-          wrapped.process(inProt, outProt);
-          return;
+          return wrapped.process(inProt, outProt);
         }
 
         authenticationMethod.set(AuthenticationMethod.KERBEROS);
@@ -591,26 +586,23 @@ public abstract class HadoopThriftAuthBridge {
                 endUser, UserGroupInformation.getLoginUser());
             remoteUser.set(clientUgi.getShortUserName());
             LOG.debug("Set remoteUser :" + remoteUser.get());
-            clientUgi.doAs(new PrivilegedExceptionAction<Boolean>() {
+            return clientUgi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
               @Override
               public Boolean run() {
                 try {
-                  wrapped.process(inProt, outProt);
-                  return true;
+                  return wrapped.process(inProt, outProt);
                 } catch (TException te) {
                   throw new RuntimeException(te);
                 }
               }
             });
-            return;
           } else {
             // use the short user name for the request
             UserGroupInformation endUserUgi = UserGroupInformation.createRemoteUser(endUser);
             remoteUser.set(endUserUgi.getShortUserName());
             LOG.debug("Set remoteUser :" + remoteUser.get() + ", from endUser :" + endUser);
-            wrapped.process(inProt, outProt);
-            return;
+            return wrapped.process(inProt, outProt);
           }
         } catch (RuntimeException rte) {
           if (rte.getCause() instanceof TException) {
@@ -657,12 +649,7 @@ public abstract class HadoopThriftAuthBridge {
         return ugi.doAs(new PrivilegedAction<TTransport>() {
           @Override
           public TTransport run() {
-            try {
-              return wrapped.getTransport(trans);
-            } catch (TTransportException e) {
-              e.printStackTrace();
-            }
-            return null;
+            return wrapped.getTransport(trans);
           }
         });
       }
