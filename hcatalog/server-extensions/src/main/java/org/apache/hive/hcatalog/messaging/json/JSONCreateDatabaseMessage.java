@@ -20,7 +20,7 @@
 package org.apache.hive.hcatalog.messaging.json;
 
 import org.apache.hive.hcatalog.messaging.CreateDatabaseMessage;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * JSON Implementation of CreateDatabaseMessage.

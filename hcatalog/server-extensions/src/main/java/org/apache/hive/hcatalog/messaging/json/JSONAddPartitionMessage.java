@@ -20,7 +20,7 @@
 package org.apache.hive.hcatalog.messaging.json;
 
 import org.apache.hive.hcatalog.messaging.AddPartitionMessage;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.List;
 import java.util.Map;

@@ -24,11 +24,9 @@ import org.apache.hadoop.hive.ql.plan.api.StageType;
 import java.io.Serializable;
 import java.util.*;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonWriteNullProperties;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * Some limited query information to save for WebUI.
@@ -62,9 +60,8 @@ public class QueryDisplay {
     EXECUTION,
   }
 
-  @JsonInclude(Include.NON_NULL)
+  @JsonWriteNullProperties(false)
   @JsonIgnoreProperties(ignoreUnknown = true)
-  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
   public static class TaskDisplay {
 
     private Integer returnValue;  //if set, determines that task is complete.
